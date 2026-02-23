@@ -15,7 +15,7 @@
 **Testing**: JUnit 5 + Mockito（後端單元 / 整合測試）、Vitest + Vue Test Utils（前端單元測試）、Playwright（E2E 測試）
 **Target Platform**: 內部網路 Web 應用程式（Linux/Docker 部署）
 **Project Type**: Web service (REST API) + SPA frontend（前後端分離）
-**Performance Goals**: API p95 ≤ 200ms、p99 ≤ 500ms；前端 FCP ≤ 1.5s、TTI ≤ 3.0s（4G 基準）
+**Performance Goals**: API p95 ≤ 200ms、p99 ≤ 500ms；一般頁面回應 p95 ≤ 500ms（100 人以下併發）；前端 FCP ≤ 1.5s、TTI ≤ 3.0s（4G 基準）
 **Constraints**: < 100 同時線上使用者、單一部署（不需水平擴展）、工時填報後即時生效（無審核延遲）
 **Scale/Scope**: ~100 使用者、5 種角色、7 核心實體、~15 個頁面
 

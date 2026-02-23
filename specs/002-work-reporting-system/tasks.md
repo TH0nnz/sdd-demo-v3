@@ -283,12 +283,14 @@
 - [x] T117 [P] 資料庫查詢效能驗證（關鍵查詢 EXPLAIN ANALYZE、確認索引使用、禁止全表掃描）in `backend/src/test/java/com/workreport/integration/QueryPerformanceTest.java`
 - [x] T118 [P] 樂觀鎖定並行測試（多名執行人員同時填報同一 Task 工時）in `backend/src/test/java/com/workreport/integration/ConcurrencyTest.java`
 - [x] T119 [P] 前端 Loading / Empty / Error 三態檢查（所有頁面須具備三態 UI）across `frontend/src/pages/`
-- [ ] T120 [P] 前端無障礙掃描（WCAG 2.1 AA 檢查）across `frontend/src/`（skipped，待後續補齊）
+- [x] T120 [P] 前端無障礙掃描（WCAG 2.1 AA 檢查）across `frontend/src/`，報告 in `frontend/tests/accessibility/wcag-aa-report.md`
 - [x] T121 程式碼清理與重構（移除 TODO、dead code、確保 Checkstyle/ESLint zero warnings）
 - [x] T122 執行 quickstart.md 驗證（從零啟動至登入成功的完整流程）per `specs/002-work-reporting-system/quickstart.md`
 - [x] T123 [P] 建立前端 Vitest 單元測試（stores/router）in `frontend/tests/unit/`
 - [x] T124 [P] 建立 Playwright E2E 測試（US1 驗收情境）in `frontend/tests/e2e/us1-work-entry.spec.ts`
 - [x] T125 [P] 建立負載測試腳本（100 並發，p95 ≤ 500ms）in `performance/k6/us1-smoke.js`
+- [x] T126 [P] 建立 SC-001 量測任務（工時填報完成時間 ≤ 2 分鐘）in `frontend/tests/usability/sc001-task-time-checklist.md`
+- [x] T127 [P] 建立 SC-005 可用性驗證任務（N≥20、首次成功率 ≥95%）in `frontend/tests/usability/sc005-first-attempt-success.md`
 
 ---
 
