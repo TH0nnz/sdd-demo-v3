@@ -1,0 +1,1 @@
+/speckit.analyze Save your analyze report to `analyze-01.md`

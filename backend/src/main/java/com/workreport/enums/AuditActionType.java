@@ -1,0 +1,11 @@
+package com.workreport.enums;
+
+public enum AuditActionType {
+    ROLE_CHANGE,
+    ACCOUNT_ACTIVATE,
+    ACCOUNT_DEACTIVATE,
+    HOURS_REQUEST_APPROVED,
+    HOURS_REQUEST_REJECTED,
+    TASK_FORCE_CLOSED,
+    PROJECT_CLOSED
+}

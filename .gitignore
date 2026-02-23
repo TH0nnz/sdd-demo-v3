@@ -1,0 +1,46 @@
+# Java / Gradle
+backend/build/
+backend/.gradle/
+backend/out/
+*.class
+*.jar
+*.war
+
+# Node.js
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+*.suo
+*.user
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+*.log.*
+
+# Test & Coverage
+backend/build/reports/
+frontend/coverage/
+
+# Docker
+docker-compose.override.yml
+
+# Temp
+*.tmp
+*.swp
+*.bak

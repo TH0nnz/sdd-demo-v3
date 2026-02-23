@@ -1,0 +1,10 @@
+package com.workreport.enums;
+
+public enum NotificationType {
+    TASK_HOURS_EXHAUSTED,
+    HOURS_REQUEST_SUBMITTED,
+    HOURS_REQUEST_APPROVED,
+    HOURS_REQUEST_REJECTED,
+    TASK_COMPLETED,
+    TASK_UNASSIGNED
+}

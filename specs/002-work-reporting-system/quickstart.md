@@ -36,7 +36,7 @@ docker compose up -d db
 - Host: `localhost:5432`
 - Database: `workreport`
 - User: `workreport`
-- Password: `workreport_dev`
+- Password: `workreport`
 
 ### 3. 啟動後端
 
@@ -159,8 +159,8 @@ docker compose logs -f
 | 變數 | 預設值 | 說明 |
 |------|--------|------|
 | `SPRING_DATASOURCE_URL` | `jdbc:postgresql://localhost:5432/workreport` | 資料庫連線 URL |
-| `SPRING_DATASOURCE_USERNAME` | `workreport` | 資料庫使用者 |
-| `SPRING_DATASOURCE_PASSWORD` | `workreport_dev` | 資料庫密碼 |
+| `DB_USERNAME` | `workreport` | 資料庫使用者 |
+| `DB_PASSWORD` | `workreport` | 資料庫密碼 |
 | `JWT_SECRET` | （開發環境預設值） | JWT 簽章密鑰 |
 | `JWT_EXPIRATION_MS` | `1800000` | JWT 有效期（毫秒，預設 30 分鐘） |
 

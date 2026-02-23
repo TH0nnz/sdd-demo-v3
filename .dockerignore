@@ -1,0 +1,16 @@
+.git/
+node_modules/
+frontend/node_modules/
+*.log*
+.env*
+coverage/
+*.md
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+backend/build/reports/
+frontend/coverage/
+Dockerfile*
+.dockerignore
+docker-compose*.yml
