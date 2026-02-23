@@ -8,7 +8,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U workreport"]
       interval: 10s
@@ -23,6 +23,7 @@ services:
       DB_USERNAME: workreport
       DB_PASSWORD: workreport
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/workreport
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
       JWT_SECRET: mySecretKeyForDevelopmentOnlyDoNotUseInProduction2026
     depends_on:
       db:
