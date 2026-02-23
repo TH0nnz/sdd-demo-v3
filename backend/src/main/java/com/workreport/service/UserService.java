@@ -6,11 +6,16 @@ import com.workreport.dto.user.CreateUserResponse;
 import com.workreport.dto.user.ResetPasswordResponse;
 import com.workreport.dto.user.UpdateUserRequest;
 import com.workreport.dto.user.UserResponse;
+import com.workreport.entity.Task;
 import com.workreport.entity.Department;
 import com.workreport.entity.User;
+import com.workreport.enums.AuditActionType;
+import com.workreport.enums.NotificationType;
 import com.workreport.enums.Role;
+import com.workreport.enums.TaskStatus;
 import com.workreport.exception.BusinessRuleException;
 import com.workreport.repository.DepartmentRepository;
+import com.workreport.repository.TaskRepository;
 import com.workreport.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -20,7 +25,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @Transactional
@@ -32,13 +39,22 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final DepartmentRepository departmentRepository;
+    private final TaskRepository taskRepository;
+    private final NotificationService notificationService;
+    private final AuditLogService auditLogService;
     private final BCryptPasswordEncoder passwordEncoder;
 
     public UserService(UserRepository userRepository,
                        DepartmentRepository departmentRepository,
+                       TaskRepository taskRepository,
+                       NotificationService notificationService,
+                       AuditLogService auditLogService,
                        BCryptPasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.departmentRepository = departmentRepository;
+        this.taskRepository = taskRepository;
+        this.notificationService = notificationService;
+        this.auditLogService = auditLogService;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -68,6 +84,7 @@ public class UserService {
 
     public UserResponse updateUser(Long userId, UpdateUserRequest request) {
         User user = findUserById(userId);
+        Set<Role> originalRoles = new HashSet<>(user.getRoles());
 
         Department department = departmentRepository.findById(request.departmentId())
                 .orElseThrow(() -> new BusinessRuleException("Department not found",
@@ -77,12 +94,44 @@ public class UserService {
         user.setDepartment(department);
         user.setRoles(request.roles());
 
+        if (!originalRoles.equals(request.roles())) {
+            auditLogService.log(
+                    AuditActionType.ROLE_CHANGE,
+                    null,
+                    "User",
+                    userId,
+                    "角色已變更: " + originalRoles + " -> " + request.roles()
+            );
+        }
+
         return UserResponse.from(userRepository.save(user));
     }
 
     public UserResponse disableUser(Long userId) {
         User user = findUserById(userId);
         user.setActive(false);
+
+        List<TaskStatus> nonTerminal = List.of(TaskStatus.PENDING, TaskStatus.IN_PROGRESS);
+        List<Task> affectedTasks = taskRepository.findByAssigneeIdAndStatusIn(userId, nonTerminal);
+        for (Task task : affectedTasks) {
+            task.setAssignee(null);
+            taskRepository.save(task);
+            notificationService.notify(
+                    task.getProject().getPm().getId(),
+                    NotificationType.TASK_UNASSIGNED,
+                    "Task 已轉為未指派",
+                    "使用者「" + user.getName() + "」已停用，Task「" + task.getName() + "」已轉為未指派"
+            );
+        }
+
+        auditLogService.log(
+                AuditActionType.ACCOUNT_DEACTIVATE,
+                null,
+                "User",
+                userId,
+                "帳號已停用: " + user.getEmail()
+        );
+
         return UserResponse.from(userRepository.save(user));
     }
 
@@ -91,6 +140,15 @@ public class UserService {
         user.setActive(true);
         user.setLockedUntil(null);
         user.setFailedLoginCount(0);
+
+        auditLogService.log(
+                AuditActionType.ACCOUNT_ACTIVATE,
+                null,
+                "User",
+                userId,
+                "帳號已啟用: " + user.getEmail()
+        );
+
         return UserResponse.from(userRepository.save(user));
     }
 

@@ -9,11 +9,13 @@ import com.workreport.entity.User;
 import com.workreport.enums.AuditActionType;
 import com.workreport.enums.ProjectStatus;
 import com.workreport.enums.Role;
+import com.workreport.enums.TaskStatus;
 import com.workreport.exception.BusinessRuleException;
 import com.workreport.exception.ResourceNotFoundException;
 import com.workreport.repository.ProjectRepository;
 import com.workreport.repository.TaskRepository;
 import com.workreport.repository.UserRepository;
+import com.workreport.repository.WorkEntryRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -22,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @Transactional
@@ -30,15 +33,18 @@ public class ProjectService {
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
     private final TaskRepository taskRepository;
+    private final WorkEntryRepository workEntryRepository;
     private final AuditLogService auditLogService;
 
     public ProjectService(ProjectRepository projectRepository,
                           UserRepository userRepository,
                           TaskRepository taskRepository,
+                          WorkEntryRepository workEntryRepository,
                           AuditLogService auditLogService) {
         this.projectRepository = projectRepository;
         this.userRepository = userRepository;
         this.taskRepository = taskRepository;
+        this.workEntryRepository = workEntryRepository;
         this.auditLogService = auditLogService;
     }
 
@@ -90,6 +96,14 @@ public class ProjectService {
             throw new BusinessRuleException("專案已為關閉狀態");
         }
 
+        List<TaskStatus> nonTerminal = List.of(TaskStatus.PENDING, TaskStatus.IN_PROGRESS);
+        boolean hasNonTerminalTasks = !taskRepository
+                .findByProjectIdAndStatusIn(projectId, nonTerminal)
+                .isEmpty();
+        if (hasNonTerminalTasks) {
+            throw new BusinessRuleException("請先關閉所有進行中的 task 後再關閉專案", HttpStatus.CONFLICT);
+        }
+
         project.setStatus(ProjectStatus.CLOSED);
         project.setClosedAt(LocalDateTime.now());
         project = projectRepository.save(project);
@@ -104,9 +118,8 @@ public class ProjectService {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ResourceNotFoundException("Project not found: " + projectId));
 
-        long taskCount = taskRepository.countByProjectId(projectId);
-        if (taskCount > 0) {
-            throw new BusinessRuleException("專案下仍有 Task，無法刪除", HttpStatus.CONFLICT);
+        if (workEntryRepository.existsByTaskProjectId(projectId)) {
+            throw new BusinessRuleException("專案已有工時紀錄，請改為關閉", HttpStatus.CONFLICT);
         }
 
         projectRepository.delete(project);

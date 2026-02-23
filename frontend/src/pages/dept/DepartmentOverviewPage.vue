@@ -14,10 +14,15 @@
           </el-col>
           <el-col :span="8">
             <el-card shadow="hover">
-              <el-statistic title="本月總工時" :value="overview.totalHoursThisMonth" :precision="1" suffix="小時" />
+              <el-statistic title="本週總工時" :value="overview.totalHoursThisWeek" :precision="1" suffix="小時" />
             </el-card>
           </el-col>
           <el-col :span="8">
+            <el-card shadow="hover">
+              <el-statistic title="本月總工時" :value="overview.totalHoursThisMonth" :precision="1" suffix="小時" />
+            </el-card>
+          </el-col>
+          <el-col :span="8" style="margin-top: 16px">
             <el-card shadow="hover">
               <el-statistic
                 title="人均本月工時"
@@ -29,8 +34,18 @@
           </el-col>
         </el-row>
 
-        <el-table :data="overview.members" border stripe>
+        <el-table :data="overview.members" border stripe row-key="userId">
+          <el-table-column type="expand" width="48">
+            <template #default="{ row }">
+              <MemberTaskDetail :tasks="memberTasks[row.userId] || []" :loading="detailLoading[row.userId] || false" />
+            </template>
+          </el-table-column>
           <el-table-column prop="name" label="成員姓名" min-width="150" />
+          <el-table-column label="本週工時" min-width="120" align="right">
+            <template #default="{ row }">
+              {{ row.totalHoursThisWeek.toFixed(1) }} 小時
+            </template>
+          </el-table-column>
           <el-table-column label="本月工時" min-width="120" align="right">
             <template #default="{ row }">
               {{ row.totalHoursThisMonth.toFixed(1) }} 小時
@@ -54,10 +69,13 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { deptApi, type DeptOverview } from '@/api/dept'
+import { deptApi, type DeptOverview, type MemberTask } from '@/api/dept'
+import MemberTaskDetail from '@/components/department/MemberTaskDetail.vue'
 
 const loading = ref(false)
 const overview = ref<DeptOverview | null>(null)
+const memberTasks = ref<Record<number, MemberTask[]>>({})
+const detailLoading = ref<Record<number, boolean>>({})
 
 const fetchOverview = async () => {
   loading.value = true
@@ -71,5 +89,25 @@ const fetchOverview = async () => {
   }
 }
 
-onMounted(fetchOverview)
+const fetchMemberTasks = async (userId: number) => {
+  if (memberTasks.value[userId]) {
+    return
+  }
+  detailLoading.value[userId] = true
+  try {
+    const res = await deptApi.getMemberTasks(userId)
+    memberTasks.value[userId] = res.data
+  } catch {
+    ElMessage.error('載入成員 task 詳情失敗')
+  } finally {
+    detailLoading.value[userId] = false
+  }
+}
+
+onMounted(async () => {
+  await fetchOverview()
+  if (overview.value) {
+    await Promise.all(overview.value.members.map((m) => fetchMemberTasks(m.userId)))
+  }
+})
 </script>

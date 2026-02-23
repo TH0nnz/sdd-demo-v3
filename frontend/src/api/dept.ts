@@ -3,6 +3,7 @@ import http from './http'
 export interface DeptOverview {
   deptName: string
   memberCount: number
+  totalHoursThisWeek: number
   totalHoursThisMonth: number
   members: MemberSummary[]
 }
@@ -10,8 +11,17 @@ export interface DeptOverview {
 export interface MemberSummary {
   userId: number
   name: string
+  totalHoursThisWeek: number
   totalHoursThisMonth: number
   todayHours: number
+}
+
+export interface MemberTask {
+  taskId: number
+  taskName: string
+  projectName: string
+  status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CLOSED'
+  consumedHours: number
 }
 
 export interface Department {
@@ -26,5 +36,9 @@ export const deptApi = {
 
   listDepartments() {
     return http.get<Department[]>('/dept/departments')
+  },
+
+  getMemberTasks(userId: number) {
+    return http.get<MemberTask[]>(`/dept/members/${userId}/tasks`)
   },
 }

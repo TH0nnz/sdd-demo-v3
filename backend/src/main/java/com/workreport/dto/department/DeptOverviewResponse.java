@@ -6,6 +6,7 @@ import java.util.List;
 public record DeptOverviewResponse(
         String deptName,
         int memberCount,
+        BigDecimal totalHoursThisWeek,
         BigDecimal totalHoursThisMonth,
         List<MemberSummaryDto> members
 ) {

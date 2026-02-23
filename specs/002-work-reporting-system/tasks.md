@@ -30,7 +30,7 @@
 - [x] T003 [P] 建立前端 Vue 3 + TypeScript 專案（Vite, Pinia, Vue Router, Element Plus, Axios）in `frontend/package.json`, `frontend/vite.config.ts`, `frontend/tsconfig.json`
 - [x] T004 [P] 建立 Docker Compose 開發環境（PostgreSQL 18.1）in `docker-compose.yml`
 - [x] T005 [P] 設定後端 Checkstyle + SpotBugs + JaCoCo in `backend/build.gradle`, `backend/config/checkstyle/checkstyle.xml`
-- [x] T006 [P] 設定前端 ESLint + Prettier in `frontend/.eslintrc.cjs`, `frontend/.prettierrc`
+- [x] T006 [P] 設定前端 ESLint + Prettier in `frontend/eslint.config.js`, `frontend/.prettierrc`
 - [x] T007 建立後端主應用程式類別 in `backend/src/main/java/com/workreport/WorkReportApplication.java`
 - [x] T008 建立 Dockerfile（後端與前端）in `backend/Dockerfile`, `frontend/Dockerfile`
 
@@ -196,12 +196,12 @@
 - [x] T087 [US3] 實作 ProjectService（建立、修改、關閉、刪除專案，含非終態 Task 檢查與工時紀錄檢查）in `backend/src/main/java/com/workreport/service/ProjectService.java`
 - [x] T088 [US3] 實作 HoursRequestReviewService（核准——依 target_type 增加 Task 或 Project 時數、拒絕——必填原因、觸發通知與 AuditLog）in `backend/src/main/java/com/workreport/service/HoursRequestReviewService.java`
 - [x] T089 [US3] 建立 ProjectController — CRUD /api/projects、POST /api/projects/{id}/close、DELETE /api/projects/{id} in `backend/src/main/java/com/workreport/controller/ProjectController.java`
-- [x] T090 [US3] 擴充 HoursRequestController — POST /api/hours-requests/{id}/approve、POST /api/hours-requests/{id}/reject in `backend/src/main/java/com/workreport/controller/HoursRequestController.java`
+- [x] T090 [US3] 建立 HoursRequestReviewController — POST /api/admin/hours-requests/{id}/review in `backend/src/main/java/com/workreport/controller/HoursRequestReviewController.java`
 
 ### 前端 — User Story 3
 
 - [x] T091 [P] [US3] 建立 Projects API 封裝（CRUD, close, delete）in `frontend/src/api/projects.ts`
-- [x] T092 [P] [US3] 建立 HoursRequest 審核 API 封裝（approve, reject）in `frontend/src/api/hours-request-review.ts`
+- [x] T092 [P] [US3] 建立 HoursRequest 審核 API 封裝（approve, reject）in `frontend/src/api/admin-hours-requests.ts`
 - [x] T093 [US3] 建立專案管理頁面（專案列表含狀態篩選、建立/編輯表單、指派 PM 下拉、關閉/刪除操作）in `frontend/src/pages/admin/ProjectManagementPage.vue`
 - [x] T094 [US3] 建立時數審核頁面（待審核申請列表、核准/拒絕操作、拒絕原因必填、歷史審核紀錄）in `frontend/src/pages/admin/HoursReviewPage.vue`
 - [x] T095 [P] [US3] 建立專案表單元件（名稱、時數預算、PM 選擇）in `frontend/src/components/project/ProjectForm.vue`
@@ -245,19 +245,19 @@
 
 ### Tests for User Story 5 ⚠️
 
-- [x] T104 [P] [US5] 建立 DepartmentService 單元測試（部門成員查詢限本部門、工時統計計算）in `backend/src/test/java/com/workreport/unit/service/DepartmentServiceTest.java`
+- [x] T104 [P] [US5] 建立 DepartmentService 單元測試（部門成員查詢限本部門、工時統計計算）in `backend/src/test/java/com/workreport/unit/service/DeptOverviewServiceTest.java`
 - [x] T105 [P] [US5] 建立部門主管 API 整合測試（成員列表、Task 詳情、跨部門拒絕存取）in `backend/src/test/java/com/workreport/integration/DeptManagerIntegrationTest.java`
 
 ### Implementation for User Story 5
 
 - [x] T106 [P] [US5] 建立 Department DTO（DepartmentMemberResponse, MemberTaskResponse）in `backend/src/main/java/com/workreport/dto/department/`
-- [x] T107 [US5] 實作 DepartmentService（部門成員工時統計——本週/本月、成員 Task 清單、限制本部門存取）in `backend/src/main/java/com/workreport/service/DepartmentService.java`
-- [x] T108 [US5] 建立 DepartmentController — GET /api/department/members、GET /api/department/members/{userId}/tasks in `backend/src/main/java/com/workreport/controller/DepartmentController.java`
+- [x] T107 [US5] 實作 DepartmentService（部門成員工時統計——本週/本月、成員 Task 清單、限制本部門存取）in `backend/src/main/java/com/workreport/service/DeptOverviewService.java`
+- [x] T108 [US5] 建立 DepartmentController — GET /api/department/members、GET /api/department/members/{userId}/tasks in `backend/src/main/java/com/workreport/controller/DeptOverviewController.java`
 
 ### 前端 — User Story 5
 
-- [x] T109 [P] [US5] 建立 Department API 封裝（getMembers, getMemberTasks）in `frontend/src/api/department.ts`
-- [x] T110 [US5] 建立部門工時總覽頁面（成員列表含本週/本月工時、點擊展開 Task 詳情、純唯讀無任何編輯入口）in `frontend/src/pages/dept-manager/DepartmentOverviewPage.vue`
+- [x] T109 [P] [US5] 建立 Department API 封裝（getMembers, getMemberTasks）in `frontend/src/api/dept.ts`
+- [x] T110 [US5] 建立部門工時總覽頁面（成員列表含本週/本月工時、點擊展開 Task 詳情、純唯讀無任何編輯入口）in `frontend/src/pages/dept/DepartmentOverviewPage.vue`
 - [x] T111 [US5] 建立成員 Task 詳情元件（Task 清單含名稱、專案、狀態、已消耗時數、唯讀）in `frontend/src/components/department/MemberTaskDetail.vue`
 
 **Checkpoint**: 部門主管可查看部門工時統計與 Task 狀態，介面純唯讀。所有 5 個 User Story 完成。
@@ -283,9 +283,12 @@
 - [x] T117 [P] 資料庫查詢效能驗證（關鍵查詢 EXPLAIN ANALYZE、確認索引使用、禁止全表掃描）in `backend/src/test/java/com/workreport/integration/QueryPerformanceTest.java`
 - [x] T118 [P] 樂觀鎖定並行測試（多名執行人員同時填報同一 Task 工時）in `backend/src/test/java/com/workreport/integration/ConcurrencyTest.java`
 - [x] T119 [P] 前端 Loading / Empty / Error 三態檢查（所有頁面須具備三態 UI）across `frontend/src/pages/`
-- [x] T120 [P] 前端無障礙掃描（WCAG 2.1 AA 檢查）across `frontend/src/`（跳過，留待未來處理）
+- [ ] T120 [P] 前端無障礙掃描（WCAG 2.1 AA 檢查）across `frontend/src/`（skipped，待後續補齊）
 - [x] T121 程式碼清理與重構（移除 TODO、dead code、確保 Checkstyle/ESLint zero warnings）
 - [x] T122 執行 quickstart.md 驗證（從零啟動至登入成功的完整流程）per `specs/002-work-reporting-system/quickstart.md`
+- [x] T123 [P] 建立前端 Vitest 單元測試（stores/router）in `frontend/tests/unit/`
+- [x] T124 [P] 建立 Playwright E2E 測試（US1 驗收情境）in `frontend/tests/e2e/us1-work-entry.spec.ts`
+- [x] T125 [P] 建立負載測試腳本（100 並發，p95 ≤ 500ms）in `performance/k6/us1-smoke.js`
 
 ---
 

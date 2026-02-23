@@ -19,6 +19,15 @@
 **Constraints**: < 100 同時線上使用者、單一部署（不需水平擴展）、工時填報後即時生效（無審核延遲）
 **Scale/Scope**: ~100 使用者、5 種角色、7 核心實體、~15 個頁面
 
+**Domain Status Enumerations**:
+- ProjectStatus: `ACTIVE`, `CLOSED`, `DELETED`
+- TaskStatus: `PENDING`, `IN_PROGRESS`, `COMPLETED`, `CLOSED`
+
+**Terminology Baseline**:
+- `totalBudgetHours`: 專案總時數預算
+- `consumedHours`: 已消耗時數
+- `remainingHours`: 剩餘可用時數（計算欄位，`totalBudgetHours - consumedHours`）
+
 ## Constitution Check
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*

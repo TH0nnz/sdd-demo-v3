@@ -18,6 +18,8 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
 
     Page<Task> findByAssigneeIdAndStatusIn(Long assigneeId, List<TaskStatus> statuses, Pageable pageable);
 
+    List<Task> findByAssigneeIdAndStatusIn(Long assigneeId, List<TaskStatus> statuses);
+
     List<Task> findByAssigneeIdAndStatusNot(Long assigneeId, TaskStatus status);
 
     List<Task> findByProjectIdAndStatusIn(Long projectId, List<TaskStatus> statuses);

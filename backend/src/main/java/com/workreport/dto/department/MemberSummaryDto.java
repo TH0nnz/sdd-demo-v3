@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 public record MemberSummaryDto(
         Long userId,
         String name,
+        BigDecimal totalHoursThisWeek,
         BigDecimal totalHoursThisMonth,
         BigDecimal todayHours
 ) {
