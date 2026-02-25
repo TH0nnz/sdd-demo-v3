@@ -1,9 +1,15 @@
 package com.workreport.config;
 
 import com.workreport.security.JwtAuthenticationFilter;
+import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
+import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
+import org.springframework.security.authorization.DefaultAuthorizationManagerFactory;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -48,6 +54,29 @@ public class SecurityConfig {
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    /**
+     * Make ROLE_ADMIN a super-role that can access any API protected by hasRole/hasAnyRole
+     * annotations (e.g. hasRole('HR'), hasRole('EXECUTOR'), ...).
+     */
+    @Bean
+    public RoleHierarchy roleHierarchy() {
+        return RoleHierarchyImpl.fromHierarchy("""
+                ROLE_ADMIN > ROLE_HR
+                ROLE_ADMIN > ROLE_PM
+                ROLE_ADMIN > ROLE_DEPT_MANAGER
+                ROLE_ADMIN > ROLE_EXECUTOR
+                """);
+    }
+
+    @Bean
+    public MethodSecurityExpressionHandler methodSecurityExpressionHandler(RoleHierarchy roleHierarchy) {
+        DefaultMethodSecurityExpressionHandler handler = new DefaultMethodSecurityExpressionHandler();
+        DefaultAuthorizationManagerFactory<MethodInvocation> factory = new DefaultAuthorizationManagerFactory<>();
+        factory.setRoleHierarchy(roleHierarchy);
+        handler.setAuthorizationManagerFactory(factory);
+        return handler;
     }
 
     @Bean
