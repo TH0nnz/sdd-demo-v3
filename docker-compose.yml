@@ -6,7 +6,7 @@ services:
       POSTGRES_USER: workreport
       POSTGRES_PASSWORD: workreport
     ports:
-      - "5432:5432"
+      - "5454:5432"
     volumes:
       - pgdata:/var/lib/postgresql
     healthcheck:
@@ -18,7 +18,7 @@ services:
   backend:
     build: ./backend
     ports:
-      - "8080:8080"
+      - "8089:8080"
     environment:
       DB_USERNAME: workreport
       DB_PASSWORD: workreport
