@@ -167,8 +167,9 @@ jobs:
           github-token: ${{ github.token }}
           script: |
             // 若 PAT_TOKEN 有設定，以它重建 Octokit 避免 github.token 無 PR 寫入權限
+            // 注意：github-script@v7 已內建 'octokit' 變數，需命名為 ghClient 避免衝突
             const pat = process.env.PAT_TOKEN;
-            const octokit = pat
+            const ghClient = pat
               ? github.getOctokit(pat)
               : github;
 
@@ -201,7 +202,7 @@ jobs:
             ].join('\n');
 
             // 檢查是否已有相同 head 分支的 PR
-            const { data: existingPRs } = await octokit.rest.pulls.list({
+            const { data: existingPRs } = await ghClient.rest.pulls.list({
               owner:  context.repo.owner,
               repo:   context.repo.repo,
               head:   `${context.repo.owner}:${branchName}`,
@@ -213,7 +214,7 @@ jobs:
             if (existingPRs.length > 0) {
               // 更新現有 PR
               const existingPR = existingPRs[0];
-              await octokit.rest.pulls.update({
+              await ghClient.rest.pulls.update({
                 owner:       context.repo.owner,
                 repo:        context.repo.repo,
                 pull_number: existingPR.number,
@@ -223,7 +224,7 @@ jobs:
               core.info(`Updated existing PR #${existingPR.number}`);
             } else {
               // 建立新 PR
-              await octokit.rest.pulls.create({
+              await ghClient.rest.pulls.create({
                 owner:  context.repo.owner,
                 repo:   context.repo.repo,
                 title:  prTitle,
