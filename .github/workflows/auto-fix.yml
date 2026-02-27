@@ -155,24 +155,15 @@ jobs:
           git push --force origin "$BRANCH_NAME"
 
       - name: Create pull request
-        # github-token 固定使用 github.token（永遠有效）。
-        # 若有設定 PAT_TOKEN，script 內部會以 PAT 重新建立 Octokit 實例，
-        # 以取得建立/更新 PR 的額外權限。
+        # github.token 搭配頂層 permissions: pull-requests: write 即可建立 PR，
+        # 前提：Settings > Actions > General > Allow GitHub Actions to create and approve pull requests
         uses: actions/github-script@v7
         env:
           ISSUE_TITLE: ${{ github.event.issue.title }}
           COMMENT_BODY: ${{ github.event.comment.body }}
-          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
         with:
           github-token: ${{ github.token }}
           script: |
-            // 若 PAT_TOKEN 有設定，以它重建 Octokit 避免 github.token 無 PR 寫入權限
-            // 注意：github-script@v7 已內建 'octokit' 變數，需命名為 ghClient 避免衝突
-            const pat = process.env.PAT_TOKEN;
-            const ghClient = pat
-              ? github.getOctokit(pat)
-              : github;
-
             const issueNumber = ${{ steps.ctx.outputs.issue_number }};
             const branchName  = '${{ steps.ctx.outputs.branch_name }}';
             const issueTitle  = process.env.ISSUE_TITLE  ?? '';
@@ -202,7 +193,7 @@ jobs:
             ].join('\n');
 
             // 檢查是否已有相同 head 分支的 PR
-            const { data: existingPRs } = await ghClient.rest.pulls.list({
+            const { data: existingPRs } = await github.rest.pulls.list({
               owner:  context.repo.owner,
               repo:   context.repo.repo,
               head:   `${context.repo.owner}:${branchName}`,
@@ -214,7 +205,7 @@ jobs:
             if (existingPRs.length > 0) {
               // 更新現有 PR
               const existingPR = existingPRs[0];
-              await ghClient.rest.pulls.update({
+              await github.rest.pulls.update({
                 owner:       context.repo.owner,
                 repo:        context.repo.repo,
                 pull_number: existingPR.number,
@@ -224,7 +215,7 @@ jobs:
               core.info(`Updated existing PR #${existingPR.number}`);
             } else {
               // 建立新 PR
-              await ghClient.rest.pulls.create({
+              await github.rest.pulls.create({
                 owner:  context.repo.owner,
                 repo:   context.repo.repo,
                 title:  prTitle,
