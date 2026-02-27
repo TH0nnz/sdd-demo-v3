@@ -144,14 +144,8 @@ jobs:
       - name: Push branch
         env:
           BRANCH_NAME: ${{ steps.ctx.outputs.branch_name }}
-          # PAT_TOKEN 若有設定則用來覆寫 remote URL，否則沿用 checkout 注入的 github.token 憑證
-          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
         run: |
-          if [ -n "$PAT_TOKEN" ]; then
-            REPO_URL="https://x-access-token:${PAT_TOKEN}@github.com/${{ github.repository }}.git"
-            git remote set-url origin "$REPO_URL"
-          fi
-          # 使用 --force 覆蓋遠端分支，避免 non-fast-forward 與 delete 權限問題
+          # checkout@v4 已透過 github.token 注入 git 憑證，搭配頂層 contents:write 即可 push
           git push --force origin "$BRANCH_NAME"
 
       - name: Create pull request
