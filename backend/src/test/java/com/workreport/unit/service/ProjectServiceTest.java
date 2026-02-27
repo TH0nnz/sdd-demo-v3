@@ -3,6 +3,7 @@ package com.workreport.unit.service;
 import com.workreport.dto.project.CreateProjectRequest;
 import com.workreport.dto.project.ProjectResponse;
 import com.workreport.dto.project.UpdateProjectRequest;
+import com.workreport.entity.Department;
 import com.workreport.entity.Project;
 import com.workreport.entity.User;
 import com.workreport.enums.AuditActionType;
@@ -10,6 +11,7 @@ import com.workreport.enums.ProjectStatus;
 import com.workreport.enums.Role;
 import com.workreport.exception.BusinessRuleException;
 import com.workreport.repository.ProjectRepository;
+import com.workreport.repository.DepartmentRepository;
 import com.workreport.repository.TaskRepository;
 import com.workreport.repository.UserRepository;
 import com.workreport.service.AuditLogService;
@@ -46,6 +48,9 @@ class ProjectServiceTest {
     private UserRepository userRepository;
 
     @Mock
+    private DepartmentRepository departmentRepository;
+
+    @Mock
     private TaskRepository taskRepository;
 
     @Mock
@@ -56,6 +61,7 @@ class ProjectServiceTest {
 
     private User pmUser;
     private User nonPmUser;
+    private Department department;
     private Project project;
 
     @BeforeEach
@@ -70,6 +76,10 @@ class ProjectServiceTest {
         nonPmUser.setName("Executor User");
         nonPmUser.setRoles(Set.of(Role.EXECUTOR));
 
+        department = new Department();
+        department.setId(1L);
+        department.setName("Engineering");
+
         project = new Project();
         project.setId(10L);
         project.setName("Test Project");
@@ -77,15 +87,17 @@ class ProjectServiceTest {
         project.setTotalBudgetHours(new BigDecimal("500.0"));
         project.setConsumedHours(BigDecimal.ZERO);
         project.setPm(pmUser);
+        project.setDepartment(department);
         project.setCreatedAt(LocalDateTime.now());
         project.setUpdatedAt(LocalDateTime.now());
     }
 
     @Test
     void createProject_success() {
-        CreateProjectRequest request = new CreateProjectRequest("New Project", new BigDecimal("100.0"), 1L);
+        CreateProjectRequest request = new CreateProjectRequest("New Project", new BigDecimal("100.0"), 1L, 1L);
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(pmUser));
+        when(departmentRepository.findById(1L)).thenReturn(Optional.of(department));
         when(projectRepository.save(any(Project.class))).thenAnswer(inv -> {
             Project p = inv.getArgument(0);
             p.setId(20L);
@@ -100,6 +112,8 @@ class ProjectServiceTest {
         assertThat(response.name()).isEqualTo("New Project");
         assertThat(response.status()).isEqualTo(ProjectStatus.ACTIVE);
         assertThat(response.totalBudgetHours()).isEqualByComparingTo(new BigDecimal("100.0"));
+        assertThat(response.departmentId()).isEqualTo(1L);
+        assertThat(response.departmentName()).isEqualTo("Engineering");
         verify(projectRepository).save(any(Project.class));
     }
 
@@ -152,9 +166,10 @@ class ProjectServiceTest {
 
     @Test
     void createProject_assignPm_success() {
-        CreateProjectRequest request = new CreateProjectRequest("PM Project", new BigDecimal("200.0"), 1L);
+        CreateProjectRequest request = new CreateProjectRequest("PM Project", new BigDecimal("200.0"), 1L, 1L);
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(pmUser));
+        when(departmentRepository.findById(1L)).thenReturn(Optional.of(department));
         when(projectRepository.save(any(Project.class))).thenAnswer(inv -> {
             Project p = inv.getArgument(0);
             p.setId(30L);
@@ -171,7 +186,7 @@ class ProjectServiceTest {
 
     @Test
     void createProject_assignNonPmUser_rejected() {
-        CreateProjectRequest request = new CreateProjectRequest("Bad PM Project", new BigDecimal("200.0"), 2L);
+        CreateProjectRequest request = new CreateProjectRequest("Bad PM Project", new BigDecimal("200.0"), 2L, 1L);
 
         when(userRepository.findById(2L)).thenReturn(Optional.of(nonPmUser));
 

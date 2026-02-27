@@ -41,6 +41,10 @@ public class Project extends BaseEntity {
     @JoinColumn(name = "pm_id", nullable = false)
     private User pm;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "department_id")
+    private Department department;
+
     @Column(name = "closed_at")
     private LocalDateTime closedAt;
 

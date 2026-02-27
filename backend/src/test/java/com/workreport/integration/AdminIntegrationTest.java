@@ -36,6 +36,7 @@ class AdminIntegrationTest {
 
     private static final Long ADMIN_USER_ID = 1L;
     private static final Long PM_USER_ID = 2L;
+    private static final Long DEPT_ID = 1L;
 
     @LocalServerPort
     private int port;
@@ -97,7 +98,7 @@ class AdminIntegrationTest {
 
     @Test
     void createProject_returns201() {
-        var request = new CreateProjectRequest("Admin Test Project", new BigDecimal("300.0"), PM_USER_ID);
+        var request = new CreateProjectRequest("Admin Test Project", new BigDecimal("300.0"), PM_USER_ID, DEPT_ID);
         ResponseEntity<ProjectResponse> response = doPost("/api/projects", request, ProjectResponse.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
@@ -109,7 +110,7 @@ class AdminIntegrationTest {
     @Test
     void listProjects_returns200() {
         doPost("/api/projects",
-                new CreateProjectRequest("List Project", new BigDecimal("100.0"), PM_USER_ID), ProjectResponse.class);
+                new CreateProjectRequest("List Project", new BigDecimal("100.0"), PM_USER_ID, DEPT_ID), ProjectResponse.class);
 
         ResponseEntity<Map> response = doGet("/api/projects", Map.class);
 
@@ -121,7 +122,7 @@ class AdminIntegrationTest {
     @Test
     void updateProject_returns200() {
         ResponseEntity<ProjectResponse> createResp = doPost("/api/projects",
-                new CreateProjectRequest("Original Project", new BigDecimal("100.0"), PM_USER_ID), ProjectResponse.class);
+                new CreateProjectRequest("Original Project", new BigDecimal("100.0"), PM_USER_ID, DEPT_ID), ProjectResponse.class);
         Long projectId = createResp.getBody().id();
 
         var updateReq = new UpdateProjectRequest("Updated Project", new BigDecimal("500.0"), PM_USER_ID);
@@ -136,7 +137,7 @@ class AdminIntegrationTest {
     @Test
     void closeProject_returns200() {
         ResponseEntity<ProjectResponse> createResp = doPost("/api/projects",
-                new CreateProjectRequest("Project To Close", new BigDecimal("100.0"), PM_USER_ID), ProjectResponse.class);
+                new CreateProjectRequest("Project To Close", new BigDecimal("100.0"), PM_USER_ID, DEPT_ID), ProjectResponse.class);
         Long projectId = createResp.getBody().id();
 
         ResponseEntity<ProjectResponse> response = doPost("/api/projects/" + projectId + "/close", "", ProjectResponse.class);
@@ -149,7 +150,7 @@ class AdminIntegrationTest {
     @Test
     void deleteProject_noTasks_returns204() {
         ResponseEntity<ProjectResponse> createResp = doPost("/api/projects",
-                new CreateProjectRequest("Project To Delete", new BigDecimal("50.0"), PM_USER_ID), ProjectResponse.class);
+                new CreateProjectRequest("Project To Delete", new BigDecimal("50.0"), PM_USER_ID, DEPT_ID), ProjectResponse.class);
         Long projectId = createResp.getBody().id();
 
         ResponseEntity<Void> response = doDelete("/api/projects/" + projectId);

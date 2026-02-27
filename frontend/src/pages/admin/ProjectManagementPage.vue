@@ -74,6 +74,7 @@
           name: editingProject.name,
           totalBudgetHours: editingProject.totalBudgetHours,
           pmId: editingProject.pmId,
+          departmentId: editingProject.departmentId ?? undefined,
         } : undefined"
         @submit="handleFormSubmit"
       />
@@ -124,7 +125,7 @@ const openEditDialog = (project: Project) => {
   dialogVisible.value = true
 }
 
-const handleFormSubmit = async (formData: { name: string; totalBudgetHours: number; pmId: number }) => {
+const handleFormSubmit = async (formData: { name: string; totalBudgetHours: number; pmId: number; departmentId: number }) => {
   try {
     if (editingProject.value) {
       await projectsApi.updateProject(editingProject.value.id, formData)

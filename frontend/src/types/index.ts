@@ -48,6 +48,8 @@ export interface Project {
   remainingHours: number
   pmId: number
   pmName: string
+  departmentId: number | null
+  departmentName: string | null
   createdAt: string
   closedAt: string | null
 }
@@ -56,6 +58,7 @@ export interface CreateProjectRequest {
   name: string
   totalBudgetHours: number
   pmId: number
+  departmentId: number
 }
 
 export interface UpdateProjectRequest {

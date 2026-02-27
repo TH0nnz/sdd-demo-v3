@@ -13,6 +13,8 @@ public record ProjectResponse(
         BigDecimal consumedHours,
         Long pmId,
         String pmName,
+        Long departmentId,
+        String departmentName,
         LocalDateTime createdAt,
         LocalDateTime updatedAt,
         LocalDateTime closedAt
