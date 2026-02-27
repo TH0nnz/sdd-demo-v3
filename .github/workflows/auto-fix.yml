@@ -11,6 +11,8 @@ permissions:
 
 jobs:
   auto-fix:
+    env:
+      PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
     # Only run when:
     #  1. The comment is on an Issue (not a PR)
     #  2. The author is exactly "TH0nnz"
@@ -23,14 +25,14 @@ jobs:
 
     steps:
       - name: Checkout repository (PAT)
-        if: ${{ secrets.PAT_TOKEN != '' }}
+        if: ${{ env.PAT_TOKEN != '' }}
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          token: ${{ secrets.PAT_TOKEN }}
+          token: ${{ env.PAT_TOKEN }}
 
       - name: Checkout repository (GITHUB_TOKEN)
-        if: ${{ secrets.PAT_TOKEN == '' }}
+        if: ${{ env.PAT_TOKEN == '' }}
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
