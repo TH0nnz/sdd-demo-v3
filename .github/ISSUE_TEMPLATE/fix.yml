@@ -1,0 +1,58 @@
+name: 🐛 Bug 回報 (/fix)
+description: 回報 UI、流程或邏輯問題，提交後可在留言使用 /fix 指令觸發自動修復。
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: dropdown
+    id: type
+    attributes:
+      label: 類型
+      description: 請選擇問題類型
+      options:
+        - ui
+        - flow
+        - logic
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 重現步驟
+      description: 請依序列出重現問題的步驟
+      placeholder: |
+        1) 前往...
+        2) 點擊...
+        3) 觀察到...
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: 實際結果
+      description: 目前觀察到的行為
+      placeholder: 描述實際發生的情況
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 預期結果
+      description: 預期應有的正確行為
+      placeholder: 描述期望的正確行為
+    validations:
+      required: true
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: 補充
+      description: "請附上相關 log、截圖或檔案路徑（可選）"
+      placeholder: |
+        - Log 片段：
+        - 截圖：
+        - 相關檔案路徑：
+    validations:
+      required: false
