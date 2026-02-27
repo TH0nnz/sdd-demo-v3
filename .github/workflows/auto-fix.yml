@@ -11,24 +11,27 @@ name: Auto-Fix from Issue Comment
 #   2. 降級使用：GITHUB_TOKEN（GitHub Actions 預設 token）
 #
 # 【如何設定 PAT_TOKEN】
-#   標準做法（推薦）：
-#   1. 前往儲存庫 → Settings → Secrets and variables → Actions
-#   2. 點擊 "New repository secret"
-#   3. Name: PAT_TOKEN
-#   4. Secret: 填入 GitHub Personal Access Token
-#      - 前往 https://github.com/settings/tokens
-#      - 建立 "Fine-grained personal access token"
-#      - Repository permissions: Contents (write), Pull requests (write)
-#      - Repository access: Only (選擇此儲存庫)
-#   5. 保存
+#   1. 前往儲存庫（Repository）頁面。
+#   2. 點選右上角 Settings > Secrets and variables > Actions。
+#   3. 點選「New repository secret」。
+#   4. Name 欄輸入：PAT_TOKEN
+#   5. Secret 欄貼上你的 Github Personal Access Token。
+#      - 產生方式：https://github.com/settings/tokens/new
+#      - 建議選「Fine-grained token」。
+#      - 權限至少包含：
+#           Repository permissions: Contents（Write）
+#           Pull requests（Write）
+#           Repository access: 只選本儲存庫即可
+#   6. 儲存
 #
 # 【注意事項】
-#   - 如果未設定 PAT_TOKEN，workflow 會自動降級使用 GITHUB_TOKEN
-#   - 確保已啟用 GitHub Actions 權限：
-#     Settings > Actions > General > Workflow permissions
-#     ✓ Allow GitHub Actions to create and approve pull requests
-#     ✓ Read and write permissions
-#   - PAT_TOKEN 必要權限：repo (contents write, pull requests write)
+#   - 如果未設定 PAT_TOKEN，workflow 會自動降級使用 GitHub Actions 內建的 GITHUB_TOKEN。
+#   - 確保在 Settings > Actions > General 已啟用：
+#       ✓ Allow all actions and reusable workflows
+#       ✓ Require approval for first-time contributors（可按需開關）
+#       ✓ Read and write permissions
+#       ✓ Allow GitHub Actions to create and approve pull requests
+#   - PAT_TOKEN 必要權限：repo > contents:write, pull_requests:write
 #
 # ==============================================================================
 
@@ -43,12 +46,6 @@ permissions:
 
 jobs:
   auto-fix:
-    # 無需在此設定 PAT_TOKEN 環境變數
-    # token 會在 checkout 步驟中直接使用 ${{ secrets.PAT_TOKEN || github.token }}
-    # 僅在以下條件都滿足時執行：
-    #  1. 評論所在為 Issue（非 PR）
-    #  2. 評論作者為 "TH0nnz"
-    #  3. 評論內容包含 "/fix" 斜杠指令
     if: |
       github.event.issue.pull_request == null &&
       github.event.comment.user.login == 'TH0nnz' &&
@@ -56,23 +53,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 檢查點：強制清理和重新初始化
-      # 此步驟確保即使之前有失敗也能重新開始
       - name: Clean workspace
         run: |
-          rm -rf /home/runner/work/sdd-demo-v3/sdd-demo-v3 || true
-          rm -rf $GITHUB_WORKSPACE/.git || true
+          rm -rf .autofix/ || true
         shell: bash
 
-      # 檢查點：使用統一的 token 參數，優先 PAT_TOKEN > GITHUB_TOKEN
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          # 條件判斷：優先使用 PAT_TOKEN，未設定時自動降級到 GITHUB_TOKEN
-          # PAT_TOKEN 在儲存庫 Secrets 中設定，預期有 repo (contents, pull-requests) 權限
-          # GITHUB_TOKEN 使用 Actions 預設權限
+          # 優先使用 PAT_TOKEN，沒有則自動降級用 github.token
           token: ${{ secrets.PAT_TOKEN || github.token }}
+
 
       - name: Extract context
         id: ctx
