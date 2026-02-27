@@ -4,6 +4,7 @@ import com.workreport.dto.common.PageResponse;
 import com.workreport.dto.project.CreateProjectRequest;
 import com.workreport.dto.project.ProjectResponse;
 import com.workreport.dto.project.UpdateProjectRequest;
+import com.workreport.entity.Department;
 import com.workreport.entity.Project;
 import com.workreport.entity.User;
 import com.workreport.enums.AuditActionType;
@@ -13,6 +14,7 @@ import com.workreport.enums.TaskStatus;
 import com.workreport.exception.BusinessRuleException;
 import com.workreport.exception.ResourceNotFoundException;
 import com.workreport.repository.ProjectRepository;
+import com.workreport.repository.DepartmentRepository;
 import com.workreport.repository.TaskRepository;
 import com.workreport.repository.UserRepository;
 import com.workreport.repository.WorkEntryRepository;
@@ -32,17 +34,20 @@ public class ProjectService {
 
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
+    private final DepartmentRepository departmentRepository;
     private final TaskRepository taskRepository;
     private final WorkEntryRepository workEntryRepository;
     private final AuditLogService auditLogService;
 
     public ProjectService(ProjectRepository projectRepository,
                           UserRepository userRepository,
+                          DepartmentRepository departmentRepository,
                           TaskRepository taskRepository,
                           WorkEntryRepository workEntryRepository,
                           AuditLogService auditLogService) {
         this.projectRepository = projectRepository;
         this.userRepository = userRepository;
+        this.departmentRepository = departmentRepository;
         this.taskRepository = taskRepository;
         this.workEntryRepository = workEntryRepository;
         this.auditLogService = auditLogService;
@@ -55,12 +60,16 @@ public class ProjectService {
             throw new BusinessRuleException("指定的使用者無 PM 角色");
         }
 
+        Department department = departmentRepository.findById(request.departmentId())
+                .orElseThrow(() -> new ResourceNotFoundException("Department not found: " + request.departmentId()));
+
         Project project = new Project();
         project.setName(request.name());
         project.setTotalBudgetHours(request.totalBudgetHours());
         project.setConsumedHours(BigDecimal.ZERO);
         project.setStatus(ProjectStatus.ACTIVE);
         project.setPm(pm);
+        project.setDepartment(department);
         project = projectRepository.save(project);
 
         return toResponse(project);
@@ -139,6 +148,7 @@ public class ProjectService {
     }
 
     private ProjectResponse toResponse(Project project) {
+        Department department = project.getDepartment();
         return new ProjectResponse(
                 project.getId(),
                 project.getName(),
@@ -147,6 +157,8 @@ public class ProjectService {
                 project.getConsumedHours(),
                 project.getPm().getId(),
                 project.getPm().getName(),
+                department != null ? department.getId() : null,
+                department != null ? department.getName() : null,
                 project.getCreatedAt(),
                 project.getUpdatedAt(),
                 project.getClosedAt()

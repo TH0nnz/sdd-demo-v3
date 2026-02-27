@@ -9,5 +9,6 @@ import java.math.BigDecimal;
 public record CreateProjectRequest(
         @NotBlank String name,
         @NotNull @Positive BigDecimal totalBudgetHours,
-        @NotNull Long pmId
+        @NotNull Long pmId,
+        @NotNull Long departmentId
 ) {}
