@@ -1,1 +1,1 @@
-/speckit.analyze Save your analyze report to `analyze-01.md`
+Run sdd-demo-v3 frontend and backend project and fix issues

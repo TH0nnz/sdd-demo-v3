@@ -1,6 +1,8 @@
-# Quickstart: 報工系統
+# 報工系統 (Work Report System)
 
-**Feature**: 002-work-reporting-system
+報工時間記錄與管理系統，用於工作項目的時間追蹤與報表統計。
+
+**Feature**: 002-work-reporting-system  
 **Date**: 2026-02-23
 
 ---
@@ -73,6 +75,44 @@ Vite dev server 自動代理 `/api` 請求至後端。
 
 ---
 
+## Docker Compose 部署（Linux 伺服器）
+
+### 1. 準備環境
+
+```bash
+# 安裝 Docker
+curl -fsSL https://get.docker.com | sh
+
+# 安裝 Docker Compose
+sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+```
+
+### 2. 部署應用
+
+```bash
+# 複製專案
+git clone <repo-url> sdd-demo-v3
+cd sdd-demo-v3
+
+# 切換分支
+git checkout 002-work-reporting-system
+
+# 啟動所有服務
+sudo docker-compose up -d
+
+# 查看狀態
+sudo docker-compose ps
+```
+
+### 3. 服務訪問
+
+- 前端（Nginx）：`http://<伺服器IP>`
+- 後端 API：`http://<伺服器IP>:8089`
+- 資料庫：`<伺服器IP>:5454`
+
+---
+
 ## 建構指令
 
 ### 後端
@@ -135,23 +175,6 @@ pnpm test:e2e
 
 ---
 
-## Docker Compose 完整部署
-
-```bash
-# 建構並啟動所有服務
-docker compose up -d --build
-
-# 查看日誌
-docker compose logs -f
-```
-
-服務對應：
-- 前端（Nginx）：`http://localhost`
-- 後端 API：`http://localhost:8080`
-- PostgreSQL：`localhost:5432`
-
----
-
 ## 環境變數
 
 ### 後端（application.yml / 環境變數）
@@ -172,7 +195,7 @@ docker compose logs -f
 
 ---
 
-## 目錄結構概覽
+## 目錄結構
 
 ```
 project-root/
@@ -188,17 +211,66 @@ project-root/
 │   ├── package.json
 │   ├── vite.config.ts
 │   └── Dockerfile
-├── docker-compose.yml       # 本地開發 + 部署
+├── docker-compose.yml       # 本地開發 + 部署設定
 └── specs/                   # 規格文件
     └── 002-work-reporting-system/
         ├── spec.md
         ├── plan.md
         ├── research.md
         ├── data-model.md
-        ├── quickstart.md    # 本文件
+        ├── quickstart.md
         └── contracts/
 ```
 
+---
+
+## 常用 Docker 命令
+
+```bash
+# 查看執行中的服務
+docker-compose ps
+
+# 檢視日誌
+docker-compose logs -f
+
+# 停止所有服務
+docker-compose down
+
+# 完全清除（包括 volume）
+docker-compose down -v
+
+# 重啟服務
+docker-compose restart
+
+# 進入資料庫
+docker-compose exec db psql -U workreport -d workreport
+```
+
+---
+
+## 數據庫遷移說明
+
+使用 Flyway 進行資料庫版本管理。遷移文件位於 `backend/src/main/resources/db/migration/`。
+
+首次啟動時，系統會自動執行所有遷移文件：
+- `V1__...` - 建立資料庫結構
+- `V2__...` - 插入測試資料
+
+**重要**: 如需重置資料庫，請：
+1. 停止容器：`docker-compose down -v`
+2. 刪除 volume：`docker volume prune`
+3. 重新啟動：`docker-compose up -d`
+
+---
+
+## 詳細文件
+
+更多詳細說明請參考 [specs/002-work-reporting-system/quickstart.md](specs/002-work-reporting-system/quickstart.md)
+
+---
 
 ### 結語：
 切記如果用docker compose在linux上啟動，會自動幫你init db，要砍掉所有table 在使用/Volumes/DOCKER_SSD/workspace/sdd-demo-v3/backend/src/main/resources/db/migration 中的v1 與 v2 重建db
+
+
+**最後更新**: 2026-02-26
