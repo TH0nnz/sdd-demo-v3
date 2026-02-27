@@ -22,19 +22,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository (PAT)
-        if: ${{ secrets.PAT_TOKEN != '' }}
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          token: ${{ secrets.PAT_TOKEN }}
-
-      - name: Checkout repository (GITHUB_TOKEN)
-        if: ${{ secrets.PAT_TOKEN == '' }}
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          token: ${{ github.token }}
+          # 如果設定了 PAT_TOKEN secret，使用它來授權
+          # 否則使用預設的 GITHUB_TOKEN
+          token: ${{ secrets.PAT_TOKEN || github.token }}
 
       - name: Extract context
         id: ctx
@@ -114,9 +108,10 @@ jobs:
         env:
           BRANCH_NAME: ${{ steps.ctx.outputs.branch_name }}
         run: |
-          # 使用 --force 覆蓋遠端分支（如果存在）
-          # 這樣可以避免 non-fast-forward 錯誤，且不需要刪除分支的權限
-          git push --force origin "$BRANCH_NAME"
+          # 先刪除遠端分支（如果存在），避免 non-fast-forward 錯誤
+          git push origin --delete "$BRANCH_NAME" 2>/dev/null || true
+          # 推送新分支
+          git push origin "$BRANCH_NAME"
 
       - name: Create pull request
         uses: actions/github-script@v7
