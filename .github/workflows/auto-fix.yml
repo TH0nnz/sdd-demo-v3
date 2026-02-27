@@ -1,5 +1,37 @@
 name: Auto-Fix from Issue Comment
 
+# ==============================================================================
+# 自動修復工作流配置說明
+# ==============================================================================
+#
+# 此 Workflow 用於自動建立修復分支和 PR，優先使用 PAT_TOKEN 進行認證。
+#
+# 【Token 優先級】
+#   1. 優先使用：PAT_TOKEN（Personal Access Token）
+#   2. 降級使用：GITHUB_TOKEN（GitHub Actions 預設 token）
+#
+# 【如何設定 PAT_TOKEN】
+#   標準做法（推薦）：
+#   1. 前往儲存庫 → Settings → Secrets and variables → Actions
+#   2. 點擊 "New repository secret"
+#   3. Name: PAT_TOKEN
+#   4. Secret: 填入 GitHub Personal Access Token
+#      - 前往 https://github.com/settings/tokens
+#      - 建立 "Fine-grained personal access token"
+#      - Repository permissions: Contents (write), Pull requests (write)
+#      - Repository access: Only (選擇此儲存庫)
+#   5. 保存
+#
+# 【注意事項】
+#   - 如果未設定 PAT_TOKEN，workflow 會自動降級使用 GITHUB_TOKEN
+#   - 確保已啟用 GitHub Actions 權限：
+#     Settings > Actions > General > Workflow permissions
+#     ✓ Allow GitHub Actions to create and approve pull requests
+#     ✓ Read and write permissions
+#   - PAT_TOKEN 必要權限：repo (contents write, pull requests write)
+#
+# ==============================================================================
+
 on:
   issue_comment:
     types: [created]
@@ -11,12 +43,13 @@ permissions:
 
 jobs:
   auto-fix:
+    # 設定環境，優先使用 PAT_TOKEN（如已設定），否則為空字符串
     env:
       PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
-    # Only run when:
-    #  1. The comment is on an Issue (not a PR)
-    #  2. The author is exactly "TH0nnz"
-    #  3. The comment body contains the "/fix" slash command
+    # 僅在以下條件都滿足時執行：
+    #  1. 評論所在為 Issue（非 PR）
+    #  2. 評論作者為 "TH0nnz"
+    #  3. 評論內容包含 "/fix" 斜杠指令
     if: |
       github.event.issue.pull_request == null &&
       github.event.comment.user.login == 'TH0nnz' &&
@@ -24,6 +57,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 檢查點 1：如果設定了 PAT_TOKEN，優先使用 PAT_TOKEN 進行檢出
       - name: Checkout repository (PAT)
         if: ${{ env.PAT_TOKEN != '' }}
         uses: actions/checkout@v4
@@ -31,6 +65,7 @@ jobs:
           fetch-depth: 0
           token: ${{ env.PAT_TOKEN }}
 
+      # 檢查點 2：如果未設定 PAT_TOKEN，降級使用預設的 GITHUB_TOKEN
       - name: Checkout repository (GITHUB_TOKEN)
         if: ${{ env.PAT_TOKEN == '' }}
         uses: actions/checkout@v4
@@ -120,6 +155,8 @@ jobs:
           git push --force origin "$BRANCH_NAME"
 
       - name: Create pull request
+        # Token 優先級：PAT_TOKEN > GITHUB_TOKEN
+        # 若 PAT_TOKEN 未設定，會自動使用 GITHUB_TOKEN
         uses: actions/github-script@v7
         env:
           ISSUE_TITLE: ${{ github.event.issue.title }}
