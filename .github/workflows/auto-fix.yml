@@ -1,0 +1,152 @@
+name: Auto-Fix from Issue Comment
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: read
+
+jobs:
+  auto-fix:
+    # Only run when:
+    #  1. The comment is on an Issue (not a PR)
+    #  2. The author is exactly "TH0nnz"
+    #  3. The comment body contains the "/fix" slash command
+    if: |
+      github.event.issue.pull_request == null &&
+      github.event.comment.user.login == 'TH0nnz' &&
+      contains(github.event.comment.body, '/fix')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract context
+        id: ctx
+        # Pass only safe, non-expandable values via ${{ }} expressions.
+        # issue.number is an integer produced by GitHub — safe to use directly.
+        env:
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_URL: ${{ github.event.issue.html_url }}
+          COMMENT_URL: ${{ github.event.comment.html_url }}
+        run: |
+          BRANCH_NAME="autofix/issue-${ISSUE_NUMBER}"
+          echo "issue_number=${ISSUE_NUMBER}" >> "$GITHUB_OUTPUT"
+          echo "branch_name=${BRANCH_NAME}"   >> "$GITHUB_OUTPUT"
+          echo "ISSUE_URL=${ISSUE_URL}"       >> "$GITHUB_ENV"
+          echo "COMMENT_URL=${COMMENT_URL}"   >> "$GITHUB_ENV"
+
+      - name: Create fix branch
+        env:
+          BRANCH_NAME: ${{ steps.ctx.outputs.branch_name }}
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH_NAME"
+
+      - name: Write autofix context file
+        # Untrusted string values (title, body, comment) are passed through env vars
+        # and written via Python to avoid any shell-injection or heredoc-terminator risks.
+        env:
+          ISSUE_NUMBER: ${{ steps.ctx.outputs.issue_number }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          COMMENT_BODY: ${{ github.event.comment.body }}
+        run: |
+          mkdir -p .autofix
+          python3 - <<'PYEOF'
+          import os, pathlib, textwrap
+
+          num     = os.environ["ISSUE_NUMBER"]
+          title   = os.environ.get("ISSUE_TITLE",  "")
+          body    = os.environ.get("ISSUE_BODY",   "")
+          comment = os.environ.get("COMMENT_BODY", "")
+          iurl    = os.environ.get("ISSUE_URL",    "")
+          curl    = os.environ.get("COMMENT_URL",  "")
+
+          content = textwrap.dedent(f"""\
+          # Auto-Fix: Issue #{num}
+
+          **Issue title:** {title}
+          **Issue URL:** {iurl}
+
+          ## Issue body
+
+          {body}
+
+          ## Triggering comment
+
+          {comment}
+
+          **Comment URL:** {curl}
+
+          ---
+          *This file was created automatically by the auto-fix workflow.
+          Replace this file (or the relevant source files) with the actual fix.*
+          """)
+
+          pathlib.Path(f".autofix/issue-{num}.md").write_text(content, encoding="utf-8")
+          PYEOF
+
+      - name: Commit autofix context
+        env:
+          ISSUE_NUMBER: ${{ steps.ctx.outputs.issue_number }}
+        run: |
+          git add .autofix/
+          git commit -m "autofix: scaffold fix for issue #${ISSUE_NUMBER}"
+
+      - name: Push branch
+        env:
+          BRANCH_NAME: ${{ steps.ctx.outputs.branch_name }}
+        run: |
+          git push origin "$BRANCH_NAME"
+
+      - name: Create pull request
+        uses: actions/github-script@v7
+        env:
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          COMMENT_BODY: ${{ github.event.comment.body }}
+        with:
+          script: |
+            const issueNumber = ${{ steps.ctx.outputs.issue_number }};
+            const branchName  = '${{ steps.ctx.outputs.branch_name }}';
+            const issueTitle  = process.env.ISSUE_TITLE  ?? '';
+            const issueUrl    = process.env.ISSUE_URL    ?? '';
+            const commentBody = process.env.COMMENT_BODY ?? '';
+            const commentUrl  = process.env.COMMENT_URL  ?? '';
+
+            // Detect optional category token from the slash command, e.g. /fix ui
+            // Supported categories: ui, flow, logic  — update the regex below to add more.
+            const match    = commentBody.match(/\/fix\s+(ui|flow|logic)/i);
+            const category = match ? ` [${match[1].toLowerCase()}]` : '';
+
+            const prBody = [
+              `Automated fix${category} proposed in response to issue #${issueNumber}.`,
+              ``,
+              `### Issue`,
+              `**${issueTitle}**`,
+              `${issueUrl}`,
+              ``,
+              `### Triggered by comment`,
+              `> ${commentBody.split('\n').join('\n> ')}`,
+              ``,
+              `${commentUrl}`,
+              ``,
+              `---`,
+              `*Review and update the scaffolded file in \`.autofix/\` (or the relevant source files) before merging.*`,
+            ].join('\n');
+
+            await github.rest.pulls.create({
+              owner:  context.repo.owner,
+              repo:   context.repo.repo,
+              title:  `autofix${category}: issue #${issueNumber} – ${issueTitle}`,
+              head:   branchName,
+              base:   context.payload.repository.default_branch,
+              body:   prBody,
+            });
