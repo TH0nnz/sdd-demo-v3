@@ -26,6 +26,9 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          # 如果設定了 PAT_TOKEN secret，使用它來授權
+          # 否則使用預設的 GITHUB_TOKEN
+          token: ${{ secrets.PAT_TOKEN || github.token }}
 
       - name: Extract context
         id: ctx
@@ -113,6 +116,7 @@ jobs:
           ISSUE_TITLE: ${{ github.event.issue.title }}
           COMMENT_BODY: ${{ github.event.comment.body }}
         with:
+          github-token: ${{ secrets.PAT_TOKEN || github.token }}
           script: |
             const issueNumber = ${{ steps.ctx.outputs.issue_number }};
             const branchName  = '${{ steps.ctx.outputs.branch_name }}';
