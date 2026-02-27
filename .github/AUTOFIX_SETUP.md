@@ -2,21 +2,50 @@
 
 本文件說明如何正確設定 `/fix` 斜線指令所需的權限。
 
-## 問題症狀
+## ⚠️ 前置需求（必須先完成）
 
-當在 Issue 中執行 `/fix` 指令時，GitHub Actions workflow 可能出現以下錯誤：
+**在使用 `/fix` 指令之前，必須先啟用 GitHub Actions 的基本權限**，否則 workflow 連 checkout 程式碼都無法執行。
+
+### 🔧 立即設定（必要步驟）
+
+1. 前往儲存庫設定頁面：
+   - **https://github.com/TH0nnz/sdd-demo-v3/settings/actions**
+
+2. 找到 **Workflow permissions** 區段
+
+3. **必須**選擇以下其中一項：
+   - ✅ **Read and write permissions**（推薦，完整功能）
+   - ⚠️ **Read repository contents and packages permissions**（僅能讀取，無法推送）
+
+4. **強烈建議**同時勾選：
+   - ✅ **Allow GitHub Actions to create and approve pull requests**
+
+5. 點擊 **Save** 儲存設定
+
+### ❌ 如果未設定會發生什麼？
+
+- `fatal: could not read Username for 'https://github.com'` - 連 checkout 都失敗
+- `Permission denied` - 無法推送分支
+- `GitHub Actions is not permitted to create pull requests` - 無法建立 PR
+
+---
+
+## 常見問題症狀
+
+當在 Issue 中執行 `/fix` 指令時，可能出現以下錯誤：
 
 - `Permission to TH0nnz/sdd-demo-v3.git denied`
 - `GitHub Actions is not permitted to create or approve pull requests`
 - `fatal: unable to access 'https://github.com/...'`
+- `fatal: could not read Username for 'https://github.com'`
 
-## 解決方案
+## 進階解決方案
 
-### 方案 1：啟用 GitHub Actions 權限（推薦）
+如果上述前置需求已完成，但仍然遇到問題，可以嘗試以下進階方案：
 
-這是最簡單的方法，適用於儲存庫擁有者或管理員。
+### 方案 A：確認權限設定（重新檢查）
 
-#### 步驟：
+有時候設定沒有正確儲存，請再次確認：
 
 1. 前往儲存庫首頁
 2. 點擊 **Settings**（設定）
@@ -26,21 +55,11 @@
 6. 勾選 **✅ Allow GitHub Actions to create and approve pull requests**
 7. 點擊 **Save** 儲存設定
 
-#### 優點：
-- ✅ 設定簡單，一次完成
-- ✅ 不需要管理額外的 tokens
-- ✅ 自動套用到所有 workflows
-
-#### 適用情況：
-- 你是儲存庫的 owner 或 admin
-- 儲存庫是私有的或不擔心安全性問題
-- 團隊成員都是可信任的
-
 ---
 
-### 方案 2：使用 Personal Access Token
+### 方案 B：使用 Personal Access Token（進階使用者）
 
-如果無法更改儲存庫設定，或需要更細緻的權限控制。
+**⚠️ 注意**：即使使用 PAT，仍然需要先完成上述前置需求中的步驟 3（至少選擇 Read permissions）。
 
 #### 步驟 1：建立 Personal Access Token
 
