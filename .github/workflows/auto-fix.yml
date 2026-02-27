@@ -43,9 +43,8 @@ permissions:
 
 jobs:
   auto-fix:
-    # 設定環境，優先使用 PAT_TOKEN（如已設定），否則為空字符串
-    env:
-      PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+    # 無需在此設定 PAT_TOKEN 環境變數
+    # token 會在 checkout 步驟中直接使用 ${{ secrets.PAT_TOKEN || github.token }}
     # 僅在以下條件都滿足時執行：
     #  1. 評論所在為 Issue（非 PR）
     #  2. 評論作者為 "TH0nnz"
@@ -57,21 +56,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 檢查點 1：如果設定了 PAT_TOKEN，優先使用 PAT_TOKEN 進行檢出
-      - name: Checkout repository (PAT)
-        if: ${{ env.PAT_TOKEN != '' }}
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          token: ${{ env.PAT_TOKEN }}
+      # 檢查點：強制清理和重新初始化
+      # 此步驟確保即使之前有失敗也能重新開始
+      - name: Clean workspace
+        run: |
+          rm -rf /home/runner/work/sdd-demo-v3/sdd-demo-v3 || true
+          rm -rf $GITHUB_WORKSPACE/.git || true
+        shell: bash
 
-      # 檢查點 2：如果未設定 PAT_TOKEN，降級使用預設的 GITHUB_TOKEN
-      - name: Checkout repository (GITHUB_TOKEN)
-        if: ${{ env.PAT_TOKEN == '' }}
+      # 檢查點：使用統一的 token 參數，優先 PAT_TOKEN > GITHUB_TOKEN
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          token: ${{ github.token }}
+          # 條件判斷：優先使用 PAT_TOKEN，未設定時自動降級到 GITHUB_TOKEN
+          # PAT_TOKEN 在儲存庫 Secrets 中設定，預期有 repo (contents, pull-requests) 權限
+          # GITHUB_TOKEN 使用 Actions 預設權限
+          token: ${{ secrets.PAT_TOKEN || github.token }}
 
       - name: Extract context
         id: ctx
