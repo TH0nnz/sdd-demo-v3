@@ -198,3 +198,7 @@ project-root/
         ├── quickstart.md    # 本文件
         └── contracts/
 ```
+
+
+### 結語：
+切記如果用docker compose在linux上啟動，會自動幫你init db，要砍掉所有table 在使用/Volumes/DOCKER_SSD/workspace/sdd-demo-v3/backend/src/main/resources/db/migration 中的v1 與 v2 重建db
