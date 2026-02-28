@@ -69,31 +69,9 @@ jobs:
             const categoryTag = category ? ` [${category}]` : '';
             const autofixFile = `.autofix/issue-${issueNumber}.md`;
 
-            // Ensure Copilot is assigned (re-assign if needed to re-trigger).
-            try {
-              await github.rest.issues.addAssignees({
-                owner:        context.repo.owner,
-                repo:         context.repo.repo,
-                issue_number: issueNumber,
-                assignees:    ['copilot'],
-              });
-            } catch (e) {
-              core.warning(`Could not assign Copilot: ${e.message}`);
-            }
-
-            // Verify that Copilot is now listed as an assignee.
-            const { data: issueData } = await github.rest.issues.get({
-              owner:        context.repo.owner,
-              repo:         context.repo.repo,
-              issue_number: issueNumber,
-            });
-            const assigneeLogins = issueData.assignees.map(a => a.login.toLowerCase());
-            const copilotAssigned = assigneeLogins.includes('copilot');
-            if (copilotAssigned) {
-              core.info(`Copilot successfully assigned to Issue #${issueNumber}, assignees: ${assigneeLogins.join(', ')}`);
-            } else {
-              core.warning(`Copilot assignment may not have succeeded. Current assignees: ${assigneeLogins.join(', ') || '(none)'}`);
-            }
+            // Note: Copilot assignment is handled via @copilot mention in the comment below.
+            // GitHub's mention system will notify the Copilot agent automatically.
+            core.info(`Workflow triggered for Issue #${issueNumber} with instructions for Copilot`);
 
             // Post an instruction comment for the Copilot agent.
             const baseBranch = context.payload.repository.default_branch || 'main';
