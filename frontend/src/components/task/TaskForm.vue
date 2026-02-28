@@ -31,7 +31,7 @@
       prop="assigneeId"
     >
       <div style="margin-bottom: 8px; color: #666; font-size: 12px;">
-        除錯：找到 {{ executors.length }} 位執行人員
+        找到 {{ executors.length }} 位執行人員
       </div>
       <el-select
         v-model="form.assigneeId"
