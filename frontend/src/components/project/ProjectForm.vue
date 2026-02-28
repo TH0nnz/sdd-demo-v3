@@ -6,10 +6,19 @@
     label-width="120px"
     @submit.prevent
   >
-    <el-form-item label="專案名稱" prop="name">
-      <el-input v-model="form.name" placeholder="請輸入專案名稱" />
+    <el-form-item
+      label="專案名稱"
+      prop="name"
+    >
+      <el-input
+        v-model="form.name"
+        placeholder="請輸入專案名稱"
+      />
     </el-form-item>
-    <el-form-item label="預算時數" prop="totalBudgetHours">
+    <el-form-item
+      label="預算時數"
+      prop="totalBudgetHours"
+    >
       <el-input-number
         v-model="form.totalBudgetHours"
         :min="0.1"
@@ -18,7 +27,10 @@
         style="width: 100%"
       />
     </el-form-item>
-    <el-form-item label="所屬部門" prop="departmentId">
+    <el-form-item
+      label="所屬部門"
+      prop="departmentId"
+    >
       <el-select
         v-model="form.departmentId"
         placeholder="請選擇部門"
@@ -33,7 +45,10 @@
         />
       </el-select>
     </el-form-item>
-    <el-form-item label="專案經理" prop="pmId">
+    <el-form-item
+      label="專案經理"
+      prop="pmId"
+    >
       <el-select
         v-model="form.pmId"
         placeholder="請選擇 PM"
@@ -49,7 +64,12 @@
       </el-select>
     </el-form-item>
     <el-form-item>
-      <el-button type="primary" @click="handleSubmit">確認</el-button>
+      <el-button
+        type="primary"
+        @click="handleSubmit"
+      >
+        確認
+      </el-button>
     </el-form-item>
   </el-form>
 </template>

@@ -47,19 +47,51 @@ function statusType(editable: boolean) {
 </script>
 
 <template>
-  <el-table :data="entries" v-loading="loading" stripe>
-    <el-table-column prop="taskName" label="任務" min-width="140" />
-    <el-table-column prop="projectName" label="專案" min-width="140" />
-    <el-table-column prop="workDate" label="工作日期" width="120" />
-    <el-table-column prop="hours" label="工時" width="80" align="center" />
-    <el-table-column label="狀態" width="100" align="center">
+  <el-table
+    v-loading="loading"
+    :data="entries"
+    stripe
+  >
+    <el-table-column
+      prop="taskName"
+      label="任務"
+      min-width="140"
+    />
+    <el-table-column
+      prop="projectName"
+      label="專案"
+      min-width="140"
+    />
+    <el-table-column
+      prop="workDate"
+      label="工作日期"
+      width="120"
+    />
+    <el-table-column
+      prop="hours"
+      label="工時"
+      width="80"
+      align="center"
+    />
+    <el-table-column
+      label="狀態"
+      width="100"
+      align="center"
+    >
       <template #default="{ row }">
-        <el-tag :type="statusType(row.editable)" size="small">
+        <el-tag
+          :type="statusType(row.editable)"
+          size="small"
+        >
           {{ row.editable ? '可編輯' : '已鎖定' }}
         </el-tag>
       </template>
     </el-table-column>
-    <el-table-column label="操作" width="80" align="center">
+    <el-table-column
+      label="操作"
+      width="80"
+      align="center"
+    >
       <template #default="{ row }">
         <el-button
           v-if="row.editable"
@@ -75,16 +107,33 @@ function statusType(editable: boolean) {
     </template>
   </el-table>
 
-  <el-dialog v-model="editDialogVisible" title="編輯工時" width="400px">
+  <el-dialog
+    v-model="editDialogVisible"
+    title="編輯工時"
+    width="400px"
+  >
     <p style="margin-bottom: 12px">
       任務：{{ editingEntry?.taskName }} ｜ 日期：{{ editingEntry?.workDate }}
     </p>
     <el-form-item label="工時（小時）">
-      <el-input-number v-model="editHours" :step="0.5" :min="0.5" :max="24" />
+      <el-input-number
+        v-model="editHours"
+        :step="0.5"
+        :min="0.5"
+        :max="24"
+      />
     </el-form-item>
     <template #footer>
-      <el-button @click="editDialogVisible = false">取消</el-button>
-      <el-button type="primary" :loading="saving" @click="handleSaveEdit">儲存</el-button>
+      <el-button @click="editDialogVisible = false">
+        取消
+      </el-button>
+      <el-button
+        type="primary"
+        :loading="saving"
+        @click="handleSaveEdit"
+      >
+        儲存
+      </el-button>
     </template>
   </el-dialog>
 </template>

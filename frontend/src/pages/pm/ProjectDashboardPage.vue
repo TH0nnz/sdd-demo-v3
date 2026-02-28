@@ -2,23 +2,36 @@
   <div class="dashboard-page">
     <h2>專案儀表板</h2>
 
-    <div v-if="loading" v-loading="true" style="min-height: 200px" />
+    <div
+      v-if="loading"
+      v-loading="true"
+      style="min-height: 200px"
+    />
 
-    <el-empty v-else-if="projects.length === 0" description="目前沒有負責的專案" />
+    <el-empty
+      v-else-if="projects.length === 0"
+      description="目前沒有負責的專案"
+    />
 
-    <div v-else class="project-grid">
+    <div
+      v-else
+      class="project-grid"
+    >
       <el-card
         v-for="project in projects"
         :key="project.id"
         class="project-card"
         shadow="hover"
-        @click="goToTasks(project.id)"
         style="cursor: pointer"
+        @click="goToTasks(project.id)"
       >
         <template #header>
           <div class="card-header">
             <span class="project-name">{{ project.name }}</span>
-            <el-tag :type="statusTagType(project.status)" size="small">
+            <el-tag
+              :type="statusTagType(project.status)"
+              size="small"
+            >
               {{ project.status }}
             </el-tag>
           </div>
@@ -41,18 +54,43 @@
         <el-divider />
 
         <div class="task-summary">
-          <div class="summary-title">任務摘要（共 {{ project.taskSummary.total }} 個）</div>
+          <div class="summary-title">
+            任務摘要（共 {{ project.taskSummary.total }} 個）
+          </div>
           <div class="summary-stats">
-            <el-tag type="info" size="small">待處理 {{ project.taskSummary.pending }}</el-tag>
-            <el-tag type="primary" size="small">進行中 {{ project.taskSummary.inProgress }}</el-tag>
-            <el-tag type="success" size="small">已完成 {{ project.taskSummary.completed }}</el-tag>
-            <el-tag type="danger" size="small">已關閉 {{ project.taskSummary.closed }}</el-tag>
+            <el-tag
+              type="info"
+              size="small"
+            >
+              待處理 {{ project.taskSummary.pending }}
+            </el-tag>
+            <el-tag
+              type="primary"
+              size="small"
+            >
+              進行中 {{ project.taskSummary.inProgress }}
+            </el-tag>
+            <el-tag
+              type="success"
+              size="small"
+            >
+              已完成 {{ project.taskSummary.completed }}
+            </el-tag>
+            <el-tag
+              type="danger"
+              size="small"
+            >
+              已關閉 {{ project.taskSummary.closed }}
+            </el-tag>
           </div>
         </div>
       </el-card>
     </div>
 
-    <div v-if="totalPages > 1" class="pagination-wrapper">
+    <div
+      v-if="totalPages > 1"
+      class="pagination-wrapper"
+    >
       <el-pagination
         v-model:current-page="currentPage"
         :page-size="pageSize"

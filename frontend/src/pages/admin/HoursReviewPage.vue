@@ -12,30 +12,73 @@
         style="width: 200px"
         @change="fetchRequests"
       >
-        <el-option label="全部" value="" />
-        <el-option label="PENDING" value="PENDING" />
-        <el-option label="APPROVED" value="APPROVED" />
-        <el-option label="REJECTED" value="REJECTED" />
+        <el-option
+          label="全部"
+          value=""
+        />
+        <el-option
+          label="PENDING"
+          value="PENDING"
+        />
+        <el-option
+          label="APPROVED"
+          value="APPROVED"
+        />
+        <el-option
+          label="REJECTED"
+          value="REJECTED"
+        />
       </el-select>
     </div>
 
-    <el-table v-loading="loading" :data="filteredRequests" stripe style="width: 100%">
-      <el-table-column prop="projectName" label="專案" min-width="160" />
-      <el-table-column label="目標類型" width="100">
+    <el-table
+      v-loading="loading"
+      :data="filteredRequests"
+      stripe
+      style="width: 100%"
+    >
+      <el-table-column
+        prop="projectName"
+        label="專案"
+        min-width="160"
+      />
+      <el-table-column
+        label="目標類型"
+        width="100"
+      >
         <template #default="{ row }">
-          <el-tag :type="row.targetType === 'PROJECT' ? 'primary' : 'warning'" size="small">
+          <el-tag
+            :type="row.targetType === 'PROJECT' ? 'primary' : 'warning'"
+            size="small"
+          >
             {{ row.targetType }}
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="targetTaskName" label="目標 Task" width="140">
+      <el-table-column
+        prop="targetTaskName"
+        label="目標 Task"
+        width="140"
+      >
         <template #default="{ row }">
           {{ row.targetTaskName || '-' }}
         </template>
       </el-table-column>
-      <el-table-column prop="requestedHours" label="申請時數" width="100" />
-      <el-table-column prop="description" label="說明" min-width="180" show-overflow-tooltip />
-      <el-table-column label="狀態" width="100">
+      <el-table-column
+        prop="requestedHours"
+        label="申請時數"
+        width="100"
+      />
+      <el-table-column
+        prop="description"
+        label="說明"
+        min-width="180"
+        show-overflow-tooltip
+      />
+      <el-table-column
+        label="狀態"
+        width="100"
+      >
         <template #default="{ row }">
           <el-tag
             :type="row.status === 'PENDING' ? 'warning' : row.status === 'APPROVED' ? 'success' : 'danger'"
@@ -44,30 +87,55 @@
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="requesterName" label="申請人" width="120" />
-      <el-table-column label="申請時間" width="170">
+      <el-table-column
+        prop="requesterName"
+        label="申請人"
+        width="120"
+      />
+      <el-table-column
+        label="申請時間"
+        width="170"
+      >
         <template #default="{ row }">
           {{ formatDate(row.createdAt) }}
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="180" fixed="right">
+      <el-table-column
+        label="操作"
+        width="180"
+        fixed="right"
+      >
         <template #default="{ row }">
           <template v-if="row.status === 'PENDING'">
-            <el-button size="small" type="success" @click="handleApprove(row)">
+            <el-button
+              size="small"
+              type="success"
+              @click="handleApprove(row)"
+            >
               核准
             </el-button>
-            <el-button size="small" type="danger" @click="handleReject(row)">
+            <el-button
+              size="small"
+              type="danger"
+              @click="handleReject(row)"
+            >
               駁回
             </el-button>
           </template>
-          <span v-else class="review-info">
+          <span
+            v-else
+            class="review-info"
+          >
             {{ row.reviewerName || '-' }}
           </span>
         </template>
       </el-table-column>
     </el-table>
 
-    <div class="pagination-bar" v-if="totalElements > 0">
+    <div
+      v-if="totalElements > 0"
+      class="pagination-bar"
+    >
       <el-pagination
         v-model:current-page="currentPage"
         :page-size="pageSize"
@@ -77,10 +145,17 @@
       />
     </div>
 
-    <el-empty v-if="!loading && requests.length === 0" description="目前沒有時數增補申請" />
+    <el-empty
+      v-if="!loading && requests.length === 0"
+      description="目前沒有時數增補申請"
+    />
 
     <!-- Reject Note Dialog -->
-    <el-dialog v-model="rejectDialogVisible" title="駁回原因" width="400px">
+    <el-dialog
+      v-model="rejectDialogVisible"
+      title="駁回原因"
+      width="400px"
+    >
       <el-input
         v-model="rejectNote"
         type="textarea"
@@ -88,8 +163,14 @@
         placeholder="請輸入駁回原因"
       />
       <template #footer>
-        <el-button @click="rejectDialogVisible = false">取消</el-button>
-        <el-button type="danger" @click="confirmReject" :loading="submitting">
+        <el-button @click="rejectDialogVisible = false">
+          取消
+        </el-button>
+        <el-button
+          type="danger"
+          :loading="submitting"
+          @click="confirmReject"
+        >
           確定駁回
         </el-button>
       </template>

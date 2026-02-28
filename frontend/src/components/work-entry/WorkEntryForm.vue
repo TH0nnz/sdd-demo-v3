@@ -88,8 +88,17 @@ onMounted(loadTasks)
 </script>
 
 <template>
-  <el-form ref="formRef" :model="form" :rules="rules" label-width="100px" @submit.prevent="handleSubmit">
-    <el-form-item label="任務" prop="taskId">
+  <el-form
+    ref="formRef"
+    :model="form"
+    :rules="rules"
+    label-width="100px"
+    @submit.prevent="handleSubmit"
+  >
+    <el-form-item
+      label="任務"
+      prop="taskId"
+    >
       <el-select
         v-model="form.taskId"
         filterable
@@ -105,7 +114,10 @@ onMounted(loadTasks)
         />
       </el-select>
     </el-form-item>
-    <el-form-item label="日期" prop="workDate">
+    <el-form-item
+      label="日期"
+      prop="workDate"
+    >
       <el-date-picker
         v-model="form.workDate"
         type="date"
@@ -115,11 +127,25 @@ onMounted(loadTasks)
         style="width: 100%"
       />
     </el-form-item>
-    <el-form-item label="工時（小時）" prop="hours">
-      <el-input-number v-model="form.hours" :step="0.5" :min="0.5" :max="24" />
+    <el-form-item
+      label="工時（小時）"
+      prop="hours"
+    >
+      <el-input-number
+        v-model="form.hours"
+        :step="0.5"
+        :min="0.5"
+        :max="24"
+      />
     </el-form-item>
     <el-form-item>
-      <el-button type="primary" :loading="submitting" @click="handleSubmit">送出</el-button>
+      <el-button
+        type="primary"
+        :loading="submitting"
+        @click="handleSubmit"
+      >
+        送出
+      </el-button>
     </el-form-item>
   </el-form>
 </template>

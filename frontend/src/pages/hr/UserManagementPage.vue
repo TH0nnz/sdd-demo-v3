@@ -1,24 +1,63 @@
 <template>
   <div class="user-management">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px">
-      <h2 style="margin: 0">使用者管理</h2>
-      <el-button type="primary" @click="openCreateDialog">新增使用者</el-button>
+      <h2 style="margin: 0">
+        使用者管理
+      </h2>
+      <el-button
+        type="primary"
+        @click="openCreateDialog"
+      >
+        新增使用者
+      </el-button>
     </div>
 
-    <el-table v-loading="loading" :data="users" border stripe>
-      <el-table-column prop="email" label="Email" min-width="180" />
-      <el-table-column prop="name" label="姓名" min-width="120" />
-      <el-table-column prop="departmentName" label="部門" min-width="120" />
-      <el-table-column label="角色" min-width="200">
+    <el-table
+      v-loading="loading"
+      :data="users"
+      border
+      stripe
+    >
+      <el-table-column
+        prop="email"
+        label="Email"
+        min-width="180"
+      />
+      <el-table-column
+        prop="name"
+        label="姓名"
+        min-width="120"
+      />
+      <el-table-column
+        prop="departmentName"
+        label="部門"
+        min-width="120"
+      />
+      <el-table-column
+        label="角色"
+        min-width="200"
+      >
         <template #default="{ row }">
-          <el-tag v-for="role in row.roles" :key="role" size="small" style="margin-right: 4px">
+          <el-tag
+            v-for="role in row.roles"
+            :key="role"
+            size="small"
+            style="margin-right: 4px"
+          >
             {{ roleLabel(role) }}
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="狀態" width="100" align="center">
+      <el-table-column
+        label="狀態"
+        width="100"
+        align="center"
+      >
         <template #default="{ row }">
-          <el-tag :type="row.active ? 'success' : 'danger'" size="small">
+          <el-tag
+            :type="row.active ? 'success' : 'danger'"
+            size="small"
+          >
             {{ row.active ? '啟用' : '停用' }}
           </el-tag>
         </template>
@@ -26,9 +65,18 @@
       <template #empty>
         <el-empty description="目前沒有使用者" />
       </template>
-      <el-table-column label="操作" width="260" align="center">
+      <el-table-column
+        label="操作"
+        width="260"
+        align="center"
+      >
         <template #default="{ row }">
-          <el-button size="small" @click="openEditDialog(row)">編輯</el-button>
+          <el-button
+            size="small"
+            @click="openEditDialog(row)"
+          >
+            編輯
+          </el-button>
           <el-button
             size="small"
             :type="row.active ? 'warning' : 'success'"
@@ -36,7 +84,11 @@
           >
             {{ row.active ? '停用' : '啟用' }}
           </el-button>
-          <el-button size="small" type="danger" @click="handleResetPassword(row)">
+          <el-button
+            size="small"
+            type="danger"
+            @click="handleResetPassword(row)"
+          >
             重設密碼
           </el-button>
         </template>
@@ -60,21 +112,46 @@
       width="520px"
       destroy-on-close
     >
-      <UserForm ref="userFormRef" :initial-data="editData" />
+      <UserForm
+        ref="userFormRef"
+        :initial-data="editData"
+      />
       <template #footer>
-        <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="submitting" @click="handleSubmit">確認</el-button>
+        <el-button @click="dialogVisible = false">
+          取消
+        </el-button>
+        <el-button
+          type="primary"
+          :loading="submitting"
+          @click="handleSubmit"
+        >
+          確認
+        </el-button>
       </template>
     </el-dialog>
 
     <!-- Temp Password Dialog -->
-    <el-dialog v-model="tempPasswordVisible" title="臨時密碼" width="420px">
-      <el-alert type="warning" :closable="false" show-icon style="margin-bottom: 16px">
+    <el-dialog
+      v-model="tempPasswordVisible"
+      title="臨時密碼"
+      width="420px"
+    >
+      <el-alert
+        type="warning"
+        :closable="false"
+        show-icon
+        style="margin-bottom: 16px"
+      >
         請將此臨時密碼提供給使用者，使用者首次登入後須變更密碼。
       </el-alert>
-      <el-input :model-value="tempPassword" readonly>
+      <el-input
+        :model-value="tempPassword"
+        readonly
+      >
         <template #append>
-          <el-button @click="copyPassword">複製</el-button>
+          <el-button @click="copyPassword">
+            複製
+          </el-button>
         </template>
       </el-input>
     </el-dialog>

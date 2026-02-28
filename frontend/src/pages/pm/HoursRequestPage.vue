@@ -3,13 +3,29 @@
     <h2>時數增補申請</h2>
 
     <!-- Create Request Form -->
-    <el-card class="form-card" shadow="never">
+    <el-card
+      class="form-card"
+      shadow="never"
+    >
       <template #header>
         <span>新增申請</span>
       </template>
-      <el-form ref="formRef" :model="form" :rules="rules" label-width="120px">
-        <el-form-item label="專案" prop="projectId">
-          <el-select v-model="form.projectId" placeholder="選擇專案" style="width: 100%" @change="onProjectChange">
+      <el-form
+        ref="formRef"
+        :model="form"
+        :rules="rules"
+        label-width="120px"
+      >
+        <el-form-item
+          label="專案"
+          prop="projectId"
+        >
+          <el-select
+            v-model="form.projectId"
+            placeholder="選擇專案"
+            style="width: 100%"
+            @change="onProjectChange"
+          >
             <el-option
               v-for="p in projects"
               :key="p.id"
@@ -18,14 +34,35 @@
             />
           </el-select>
         </el-form-item>
-        <el-form-item label="增補類型" prop="targetType">
-          <el-select v-model="form.targetType" placeholder="選擇類型" style="width: 100%">
-            <el-option label="專案" value="PROJECT" />
-            <el-option label="任務" value="TASK" />
+        <el-form-item
+          label="增補類型"
+          prop="targetType"
+        >
+          <el-select
+            v-model="form.targetType"
+            placeholder="選擇類型"
+            style="width: 100%"
+          >
+            <el-option
+              label="專案"
+              value="PROJECT"
+            />
+            <el-option
+              label="任務"
+              value="TASK"
+            />
           </el-select>
         </el-form-item>
-        <el-form-item v-if="form.targetType === 'TASK'" label="目標任務" prop="targetTaskId">
-          <el-select v-model="form.targetTaskId" placeholder="選擇任務" style="width: 100%">
+        <el-form-item
+          v-if="form.targetType === 'TASK'"
+          label="目標任務"
+          prop="targetTaskId"
+        >
+          <el-select
+            v-model="form.targetTaskId"
+            placeholder="選擇任務"
+            style="width: 100%"
+          >
             <el-option
               v-for="t in projectTasks"
               :key="t.id"
@@ -34,7 +71,10 @@
             />
           </el-select>
         </el-form-item>
-        <el-form-item label="申請時數" prop="requestedHours">
+        <el-form-item
+          label="申請時數"
+          prop="requestedHours"
+        >
           <el-input-number
             v-model="form.requestedHours"
             :min="0.5"
@@ -43,52 +83,120 @@
             controls-position="right"
           />
         </el-form-item>
-        <el-form-item label="說明" prop="description">
-          <el-input v-model="form.description" type="textarea" :rows="3" placeholder="請說明增補原因" />
+        <el-form-item
+          label="說明"
+          prop="description"
+        >
+          <el-input
+            v-model="form.description"
+            type="textarea"
+            :rows="3"
+            placeholder="請說明增補原因"
+          />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" :loading="submitting" @click="handleSubmit">提交申請</el-button>
+          <el-button
+            type="primary"
+            :loading="submitting"
+            @click="handleSubmit"
+          >
+            提交申請
+          </el-button>
         </el-form-item>
       </el-form>
     </el-card>
 
     <!-- Request History -->
-    <el-card class="history-card" shadow="never" style="margin-top: 20px">
+    <el-card
+      class="history-card"
+      shadow="never"
+      style="margin-top: 20px"
+    >
       <template #header>
         <span>申請紀錄</span>
       </template>
-      <el-table v-loading="loading" :data="requests" stripe border style="width: 100%">
-        <el-table-column prop="projectName" label="專案" min-width="150" />
-        <el-table-column prop="targetType" label="類型" width="80">
+      <el-table
+        v-loading="loading"
+        :data="requests"
+        stripe
+        border
+        style="width: 100%"
+      >
+        <el-table-column
+          prop="projectName"
+          label="專案"
+          min-width="150"
+        />
+        <el-table-column
+          prop="targetType"
+          label="類型"
+          width="80"
+        >
           <template #default="{ row }">
             {{ row.targetType === 'TASK' ? '任務' : '專案' }}
           </template>
         </el-table-column>
-        <el-table-column prop="targetTaskName" label="目標任務" width="150">
+        <el-table-column
+          prop="targetTaskName"
+          label="目標任務"
+          width="150"
+        >
           <template #default="{ row }">
             {{ row.targetTaskName ?? '-' }}
           </template>
         </el-table-column>
-        <el-table-column prop="requestedHours" label="申請時數" width="100" align="right" />
-        <el-table-column prop="description" label="說明" min-width="200" show-overflow-tooltip />
-        <el-table-column prop="status" label="狀態" width="100">
+        <el-table-column
+          prop="requestedHours"
+          label="申請時數"
+          width="100"
+          align="right"
+        />
+        <el-table-column
+          prop="description"
+          label="說明"
+          min-width="200"
+          show-overflow-tooltip
+        />
+        <el-table-column
+          prop="status"
+          label="狀態"
+          width="100"
+        >
           <template #default="{ row }">
-            <el-tag :type="requestStatusType(row.status)" size="small">
+            <el-tag
+              :type="requestStatusType(row.status)"
+              size="small"
+            >
               {{ requestStatusLabel(row.status) }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="reviewComment" label="審核意見" min-width="150" show-overflow-tooltip>
+        <el-table-column
+          prop="reviewComment"
+          label="審核意見"
+          min-width="150"
+          show-overflow-tooltip
+        >
           <template #default="{ row }">
             {{ row.reviewComment ?? '-' }}
           </template>
         </el-table-column>
-        <el-table-column prop="createdAt" label="申請時間" width="180" />
+        <el-table-column
+          prop="createdAt"
+          label="申請時間"
+          width="180"
+        />
       </el-table>
 
-      <el-empty v-if="!loading && requests.length === 0" description="尚無申請紀錄" />
+      <el-empty
+        v-if="!loading && requests.length === 0"
+        description="尚無申請紀錄"
+      />
 
-      <div v-if="totalPages > 1" class="pagination-wrapper">
+      <div
+        v-if="totalPages > 1"
+        class="pagination-wrapper"
+      >
         <el-pagination
           v-model:current-page="currentPage"
           :page-size="pageSize"
