@@ -30,8 +30,9 @@ on:
     types: [created]
 
 permissions:
-  contents: read
-  issues: write
+  contents: write      # 允許推送程式碼
+  pull-requests: write # 允許建立 PR
+  issues: write        # 允許操作 issues
 
 jobs:
   auto-fix:
