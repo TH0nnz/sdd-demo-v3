@@ -8,7 +8,7 @@
 
 - [專案說明](#專案說明)
 - [快速啟動](#快速啟動)
-- [Auto-Fix 工作流程（`/fix` 指令）](#auto-fix-工作流程fix-指令)
+- [Auto-Fix 工作流程（自動呼叫 Copilot）](#auto-fix-工作流程自動呼叫-copilot)
 - [Speckit 斜線指令](#speckit-斜線指令)
 - [目錄結構](#目錄結構)
 
@@ -52,17 +52,24 @@ docker compose up -d --build
 
 ---
 
-## Auto-Fix 工作流程（`/fix` 指令）
+## Auto-Fix 工作流程（自動呼叫 Copilot）
 
-當你在任意 **Issue** 留言 `/fix`，GitHub Actions 會自動：
+本專案整合兩種方式自動觸發 GitHub Copilot Coding Agent 進行修復。
+完整設定說明請參閱 [`.github/AUTOFIX_SETUP.md`](.github/AUTOFIX_SETUP.md)。
 
-1. 建立分支 `autofix/issue-<編號>`
-2. 在 `.autofix/` 目錄產生包含 Issue 完整上下文的 Markdown 草稿
-3. 開啟一個 Pull Request 供你審查並補充實際修復內容
+### 方式一：開啟 Issue（自動觸發）
 
-### 使用方式
+使用 **`fix.yml`** Issue 範本提交 Issue 後，GitHub Actions 會自動：
 
-在 Issue 的留言欄輸入下列任一指令，然後送出：
+1. 將 Issue 指派給 GitHub Copilot（`@copilot`）
+2. 發佈詳細的任務指示留言，告知 Copilot 需修復的內容
+3. Copilot 自動分析、修復程式碼，並建立 `.autofix/issue-<N>.md` 報告及 PR
+
+觸發工作流程：[`.github/workflows/auto-fix-on-issue.yml`](.github/workflows/auto-fix-on-issue.yml)
+
+### 方式二：在 Issue 留言 `/fix`（手動重觸發）
+
+若需重新觸發，在任意 Issue 的留言欄輸入：
 
 ```
 /fix
@@ -74,24 +81,28 @@ docker compose up -d --build
 /fix ui
 /fix flow
 /fix logic
+/fix add
 ```
 
-> **注意**：只有帳號 **TH0nnz** 的留言才會觸發此工作流程；留言必須在 Issue 上（PR 留言不會觸發）。
-> 允許的帳號設定於 [`.github/workflows/auto-fix.yml`](.github/workflows/auto-fix.yml)（`github.event.comment.user.login == 'TH0nnz'`）。
+觸發工作流程：[`.github/workflows/auto-fix.yml`](.github/workflows/auto-fix.yml)
 
-### 流程範例
+> **注意**：只有帳號 **TH0nnz** 的 Issue / 留言才會觸發以上工作流程；留言必須在 Issue 上（PR 留言不會觸發）。
+
+### 流程說明
 
 ```
-Issue #42: 按鈕樣式跑版
-
-留言：/fix ui
-  └─▶ Actions 執行
-       ├─ 建立分支 autofix/issue-42
-       ├─ 寫入 .autofix/issue-42.md（含 Issue 標題、內文、留言）
-       └─ 開啟 PR: "autofix [ui]: issue #42 – 按鈕樣式跑版"
+Issue 開啟（使用 fix.yml 範本）
+    ↓
+auto-fix-on-issue.yml 觸發
+    ↓
+將 Issue 指派給 Copilot + 發佈任務指示留言
+    ↓
+Copilot Coding Agent 自動執行
+    ├─ 分析 Issue 描述
+    ├─ 修改相關程式碼
+    ├─ 建立 .autofix/issue-<N>.md（修復報告）
+    └─ 開立 PR 供審核
 ```
-
-產生的 PR 會列出 Issue 的完整資訊，方便你（或 Copilot）直接在分支上進行修復。
 
 ---
 
@@ -130,7 +141,11 @@ sdd-demo-v3/
 │   └── 002-work-reporting-system/  # 規格、計劃、任務、合約文件
 ├── .github/
 │   ├── workflows/
-│   │   └── auto-fix.yml            # /fix 斜線指令自動開 PR
+│   │   ├── auto-fix-on-issue.yml   # Issue 開啟時自動呼叫 Copilot
+│   │   └── auto-fix.yml            # /fix 留言指令重新觸發 Copilot
+│   ├── ISSUE_TEMPLATE/
+│   │   └── fix.yml                 # Bug 回報範本（含類型選項）
+│   ├── AUTOFIX_SETUP.md            # Auto-Fix 完整設定指南
 │   ├── prompts/                    # Speckit prompt 定義
 │   └── agents/                     # Speckit agent 定義
 ├── docker-compose.yml              # 一鍵啟動所有服務
