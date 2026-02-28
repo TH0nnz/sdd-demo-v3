@@ -164,6 +164,7 @@ export interface User {
   departmentName: string
   roles: Role[]
   active: boolean
+  locked: boolean
   createdAt: string
 }
 
