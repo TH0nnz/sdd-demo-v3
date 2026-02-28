@@ -5,9 +5,8 @@ on:
     types: [opened]
 
 permissions:
-  contents: write
-  pull-requests: write
-  issues: read
+  contents: read
+  issues: write
 
 jobs:
   auto-fix:
@@ -16,119 +15,65 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Extract context
+      - name: Extract issue metadata
         id: ctx
         env:
           ISSUE_NUMBER: ${{ github.event.issue.number }}
-          ISSUE_URL: ${{ github.event.issue.html_url }}
           ISSUE_BODY: ${{ github.event.issue.body }}
         run: |
-          BRANCH_NAME="autofix/issue-${ISSUE_NUMBER}"
           echo "issue_number=${ISSUE_NUMBER}" >> "$GITHUB_OUTPUT"
-          echo "branch_name=${BRANCH_NAME}"   >> "$GITHUB_OUTPUT"
-          echo "ISSUE_URL=${ISSUE_URL}"       >> "$GITHUB_ENV"
 
-          # Extract the issue type (ui / flow / logic) from the "類型" section of the body.
+          # Extract the issue type (ui / flow / logic / add) from the "類型" section.
           # The issue template renders it as:
           #   ### 類型
           #   <blank line>
           #   <type value>
           CATEGORY=$(echo "$ISSUE_BODY" \
             | awk '/^### 類型/{found=1; next} found && NF{print tolower($0); exit}' \
-            | grep -Eo '(ui|flow|logic)' | head -1 || true)
+            | grep -Eo '(ui|flow|logic|add)' | head -1 || true)
           echo "category=${CATEGORY}" >> "$GITHUB_OUTPUT"
 
-      - name: Create fix branch
-        env:
-          BRANCH_NAME: ${{ steps.ctx.outputs.branch_name }}
-        run: |
-          git config user.name  "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git checkout -b "$BRANCH_NAME"
-
-      - name: Write autofix context file
-        # Untrusted string values (title, body) are passed through env vars
-        # and written via Python to avoid any shell-injection risks.
-        env:
-          ISSUE_NUMBER: ${{ steps.ctx.outputs.issue_number }}
-          ISSUE_TITLE: ${{ github.event.issue.title }}
-          ISSUE_BODY: ${{ github.event.issue.body }}
-        run: |
-          mkdir -p .autofix
-          python3 - <<'PYEOF'
-          import os, pathlib, textwrap
-
-          num   = os.environ["ISSUE_NUMBER"]
-          title = os.environ.get("ISSUE_TITLE", "")
-          body  = os.environ.get("ISSUE_BODY",  "")
-          iurl  = os.environ.get("ISSUE_URL",   "")
-
-          content = textwrap.dedent(f"""\
-          # Auto-Fix: Issue #{num}
-
-          **Issue title:** {title}
-          **Issue URL:** {iurl}
-
-          ## Issue body
-
-          {body}
-
-          ---
-          *This file was created automatically by the auto-fix-on-issue workflow.
-          Replace this file (or the relevant source files) with the actual fix.*
-          """)
-
-          pathlib.Path(f".autofix/issue-{num}.md").write_text(content, encoding="utf-8")
-          PYEOF
-
-      - name: Commit autofix context
-        env:
-          ISSUE_NUMBER: ${{ steps.ctx.outputs.issue_number }}
-        run: |
-          git add .autofix/
-          git commit -m "autofix: scaffold fix for issue #${ISSUE_NUMBER}"
-
-      - name: Push branch
-        env:
-          BRANCH_NAME: ${{ steps.ctx.outputs.branch_name }}
-        run: |
-          git push origin "$BRANCH_NAME"
-
-      - name: Create pull request
+      - name: Assign to Copilot and post instructions
         uses: actions/github-script@v7
         env:
-          ISSUE_TITLE: ${{ github.event.issue.title }}
           CATEGORY: ${{ steps.ctx.outputs.category }}
         with:
           script: |
             const issueNumber = ${{ steps.ctx.outputs.issue_number }};
-            const branchName  = '${{ steps.ctx.outputs.branch_name }}';
-            const issueTitle  = process.env.ISSUE_TITLE ?? '';
-            const issueUrl    = process.env.ISSUE_URL   ?? '';
-            const category    = process.env.CATEGORY    ?? '';
+            const category    = process.env.CATEGORY ?? '';
             const categoryTag = category ? ` [${category}]` : '';
+            const autofixFile = `.autofix/issue-${issueNumber}.md`;
 
-            const prBody = [
-              `Automated fix${categoryTag} proposed in response to issue #${issueNumber}.`,
+            // Assign the issue to the Copilot coding agent to trigger it.
+            try {
+              await github.rest.issues.addAssignees({
+                owner:        context.repo.owner,
+                repo:         context.repo.repo,
+                issue_number: issueNumber,
+                assignees:    ['copilot'],
+              });
+            } catch (e) {
+              core.warning(`Could not assign Copilot: ${e.message}`);
+            }
+
+            // Post a detailed instruction comment so the agent knows exactly
+            // what to produce (code fix + .autofix/ documentation + PR).
+            const comment = [
+              `@copilot 請根據此 Issue 的描述進行修復${categoryTag}。`,
               ``,
-              `### Issue`,
-              `**${issueTitle}**`,
-              `${issueUrl}`,
-              ``,
-              `---`,
-              `*Review and update the scaffolded file in \`.autofix/\` (or the relevant source files) before merging.*`,
+              `## 任務要求`,
+              `1. 根據 Issue 內容，找出相關程式碼並進行修正。`,
+              `2. 完成修改後，在 \`${autofixFile}\` 建立一份 Markdown 報告，包含：`,
+              `   - **問題描述**：重述此 Issue 要解決的問題`,
+              `   - **修改檔案清單**：列出所有更動的檔案及更動摘要`,
+              `   - **修復說明**：說明修復邏輯與思路`,
+              `   - **測試步驟**：如何驗證修復成果`,
+              `3. 將所有變更（程式碼修改 + \`${autofixFile}\`）放入同一個 commit，並開立 PR 供審核。`,
             ].join('\n');
 
-            await github.rest.pulls.create({
+            await github.rest.issues.createComment({
               owner:        context.repo.owner,
               repo:         context.repo.repo,
-              title:  `autofix${categoryTag}: issue #${issueNumber} – ${issueTitle}`,
-              head:   branchName,
-              base:   context.payload.repository.default_branch,
-              body:   prBody,
+              issue_number: issueNumber,
+              body:         comment,
             });
