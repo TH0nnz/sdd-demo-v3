@@ -4,6 +4,7 @@ import com.workreport.dto.common.PageResponse;
 import com.workreport.dto.task.CreateTaskRequest;
 import com.workreport.dto.task.TaskResponse;
 import com.workreport.dto.task.UpdateTaskRequest;
+import com.workreport.dto.user.UserResponse;
 import com.workreport.entity.Project;
 import com.workreport.entity.Task;
 import com.workreport.entity.User;
@@ -22,6 +23,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @Transactional
@@ -130,6 +133,17 @@ public class TaskService {
     public PageResponse<TaskResponse> getTasks(Long projectId, Pageable pageable) {
         Page<Task> page = taskRepository.findByProjectId(projectId, pageable);
         return PageResponse.from(page.map(this::toResponse));
+    }
+
+    @Transactional(readOnly = true)
+    public List<UserResponse> getAssignableExecutors(Long projectId) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found: " + projectId));
+        if (project.getDepartment() == null) {
+            return List.of();
+        }
+        return userRepository.findByRoleAndDepartmentId(Role.EXECUTOR, project.getDepartment().getId())
+                .stream().map(UserResponse::from).toList();
     }
 
     private Project getProjectAndValidateOwnership(Long pmUserId, Long projectId) {

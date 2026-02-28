@@ -2,7 +2,9 @@
   <div class="change-password-container">
     <el-card class="change-password-card">
       <template #header>
-        <h2 class="title">變更密碼</h2>
+        <h2 class="title">
+          變更密碼
+        </h2>
       </template>
       <el-alert
         v-if="authStore.forcePasswordChange"
@@ -19,21 +21,30 @@
         label-width="120px"
         @submit.prevent="handleSubmit"
       >
-        <el-form-item label="目前密碼" prop="currentPassword">
+        <el-form-item
+          label="目前密碼"
+          prop="currentPassword"
+        >
           <el-input
             v-model="form.currentPassword"
             type="password"
             show-password
           />
         </el-form-item>
-        <el-form-item label="新密碼" prop="newPassword">
+        <el-form-item
+          label="新密碼"
+          prop="newPassword"
+        >
           <el-input
             v-model="form.newPassword"
             type="password"
             show-password
           />
         </el-form-item>
-        <el-form-item label="確認新密碼" prop="confirmPassword">
+        <el-form-item
+          label="確認新密碼"
+          prop="confirmPassword"
+        >
           <el-input
             v-model="form.confirmPassword"
             type="password"

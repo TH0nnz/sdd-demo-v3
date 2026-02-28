@@ -49,7 +49,9 @@ onMounted(loadEntries)
     </el-card>
 
     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px">
-      <h2 style="margin: 0">近期工時紀錄</h2>
+      <h2 style="margin: 0">
+        近期工時紀錄
+      </h2>
       <el-date-picker
         v-model="dateRange"
         type="daterange"
@@ -57,11 +59,15 @@ onMounted(loadEntries)
         start-placeholder="開始日期"
         end-placeholder="結束日期"
         value-format="YYYY-MM-DD"
-        @change="handleDateChange"
         style="width: 300px"
+        @change="handleDateChange"
       />
     </div>
 
-    <WorkEntryList :entries="store.entries" :loading="store.loading" @updated="handleUpdated" />
+    <WorkEntryList
+      :entries="store.entries"
+      :loading="store.loading"
+      @updated="handleUpdated"
+    />
   </div>
 </template>

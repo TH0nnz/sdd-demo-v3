@@ -76,7 +76,9 @@ onMounted(loadTasks)
 <template>
   <div>
     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px">
-      <h2 style="margin: 0">我的任務</h2>
+      <h2 style="margin: 0">
+        我的任務
+      </h2>
       <el-select
         v-model="statusFilter"
         placeholder="篩選狀態"
@@ -92,20 +94,58 @@ onMounted(loadTasks)
       </el-select>
     </div>
 
-    <el-table :data="tasks" v-loading="loading" stripe>
-      <el-table-column prop="name" label="任務名稱" min-width="160" />
-      <el-table-column prop="projectName" label="專案" min-width="140" />
-      <el-table-column label="狀態" width="100" align="center">
+    <el-table
+      v-loading="loading"
+      :data="tasks"
+      stripe
+    >
+      <el-table-column
+        prop="name"
+        label="任務名稱"
+        min-width="160"
+      />
+      <el-table-column
+        prop="projectName"
+        label="專案"
+        min-width="140"
+      />
+      <el-table-column
+        label="狀態"
+        width="100"
+        align="center"
+      >
         <template #default="{ row }">
-          <el-tag :type="statusTagType(row.status)" size="small">
+          <el-tag
+            :type="statusTagType(row.status)"
+            size="small"
+          >
             {{ statusLabel(row.status) }}
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="budgetHours" label="預算工時" width="100" align="center" />
-      <el-table-column prop="consumedHours" label="已用工時" width="100" align="center" />
-      <el-table-column prop="remainingHours" label="剩餘工時" width="100" align="center" />
-      <el-table-column label="操作" width="100" align="center">
+      <el-table-column
+        prop="budgetHours"
+        label="預算工時"
+        width="100"
+        align="center"
+      />
+      <el-table-column
+        prop="consumedHours"
+        label="已用工時"
+        width="100"
+        align="center"
+      />
+      <el-table-column
+        prop="remainingHours"
+        label="剩餘工時"
+        width="100"
+        align="center"
+      />
+      <el-table-column
+        label="操作"
+        width="100"
+        align="center"
+      >
         <template #default="{ row }">
           <el-button
             v-if="row.status === 'IN_PROGRESS'"

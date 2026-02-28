@@ -1,9 +1,23 @@
 <template>
-  <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
-    <el-form-item label="任務名稱" prop="name">
-      <el-input v-model="form.name" placeholder="請輸入任務名稱" />
+  <el-form
+    ref="formRef"
+    :model="form"
+    :rules="rules"
+    label-width="100px"
+  >
+    <el-form-item
+      label="任務名稱"
+      prop="name"
+    >
+      <el-input
+        v-model="form.name"
+        placeholder="請輸入任務名稱"
+      />
     </el-form-item>
-    <el-form-item label="配額時數" prop="budgetHours">
+    <el-form-item
+      label="配額時數"
+      prop="budgetHours"
+    >
       <el-input-number
         v-model="form.budgetHours"
         :min="0.5"
@@ -12,8 +26,16 @@
         controls-position="right"
       />
     </el-form-item>
-    <el-form-item label="指派人員" prop="assigneeId">
-      <el-select v-model="form.assigneeId" placeholder="選擇執行人員" clearable style="width: 100%">
+    <el-form-item
+      label="指派人員"
+      prop="assigneeId"
+    >
+      <el-select
+        v-model="form.assigneeId"
+        placeholder="選擇執行人員"
+        clearable
+        style="width: 100%"
+      >
         <el-option
           v-for="user in executors"
           :key="user.id"
@@ -23,10 +45,16 @@
       </el-select>
     </el-form-item>
     <el-form-item>
-      <el-button type="primary" :loading="loading" @click="handleSubmit">
+      <el-button
+        type="primary"
+        :loading="loading"
+        @click="handleSubmit"
+      >
         {{ initialData ? '更新' : '建立' }}
       </el-button>
-      <el-button @click="$emit('cancel')">取消</el-button>
+      <el-button @click="$emit('cancel')">
+        取消
+      </el-button>
     </el-form-item>
   </el-form>
 </template>
@@ -70,10 +98,8 @@ const rules: FormRules = {
 
 async function loadExecutors() {
   try {
-    const { data } = await http.get<{ content: User[] }>('/users', {
-      params: { role: 'EXECUTOR', size: 100 },
-    })
-    executors.value = data.content
+    const { data } = await http.get<User[]>(`/projects/${props.projectId}/tasks/assignable-executors`)
+    executors.value = data
   } catch {
     executors.value = []
   }

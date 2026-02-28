@@ -2,7 +2,9 @@
   <div class="login-container">
     <el-card class="login-card">
       <template #header>
-        <h2 class="login-title">報工系統登入</h2>
+        <h2 class="login-title">
+          報工系統登入
+        </h2>
       </template>
       <el-form
         ref="formRef"

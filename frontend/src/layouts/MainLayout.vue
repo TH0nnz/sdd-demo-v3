@@ -1,6 +1,9 @@
 <template>
   <el-container class="main-layout">
-    <el-aside width="220px" class="sidebar">
+    <el-aside
+      width="220px"
+      class="sidebar"
+    >
       <div class="logo">
         <h2>報工系統</h2>
       </div>
@@ -67,11 +70,17 @@
 
     <el-container>
       <el-header class="header">
-        <div class="header-left"></div>
+        <div class="header-left" />
         <div class="header-right">
           <NotificationDropdown />
           <span class="username">{{ authStore.user?.name }}</span>
-          <el-button type="danger" text @click="handleLogout">登出</el-button>
+          <el-button
+            type="danger"
+            text
+            @click="handleLogout"
+          >
+            登出
+          </el-button>
         </div>
       </el-header>
       <el-main>

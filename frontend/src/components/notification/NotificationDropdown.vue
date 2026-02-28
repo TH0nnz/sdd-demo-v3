@@ -6,8 +6,17 @@
     @show="onOpen"
   >
     <template #reference>
-      <el-badge :value="store.unreadCount" :hidden="store.unreadCount === 0" class="notification-badge">
-        <el-icon :size="20" class="bell-icon"><Bell /></el-icon>
+      <el-badge
+        :value="store.unreadCount"
+        :hidden="store.unreadCount === 0"
+        class="notification-badge"
+      >
+        <el-icon
+          :size="20"
+          class="bell-icon"
+        >
+          <Bell />
+        </el-icon>
       </el-badge>
     </template>
 
@@ -25,31 +34,53 @@
     </div>
 
     <el-scrollbar max-height="400px">
-      <div v-if="store.loading" class="notification-empty">
-        <el-icon class="is-loading"><Loading /></el-icon>
+      <div
+        v-if="store.loading"
+        class="notification-empty"
+      >
+        <el-icon class="is-loading">
+          <Loading />
+        </el-icon>
         <span>載入中...</span>
       </div>
-      <div v-else-if="store.notifications.length === 0" class="notification-empty">
-        <el-icon :size="40"><BellFilled /></el-icon>
+      <div
+        v-else-if="store.notifications.length === 0"
+        class="notification-empty"
+      >
+        <el-icon :size="40">
+          <BellFilled />
+        </el-icon>
         <span>目前沒有通知</span>
       </div>
       <div
-        v-else
         v-for="item in store.notifications"
+        v-else
         :key="item.id"
         class="notification-item"
         :class="{ unread: !item.isRead }"
         @click="handleClick(item)"
       >
-        <el-icon :size="20" class="type-icon">
+        <el-icon
+          :size="20"
+          class="type-icon"
+        >
           <component :is="getTypeIcon(item.type)" />
         </el-icon>
         <div class="notification-body">
-          <div class="notification-msg">{{ item.title }}</div>
-          <div class="notification-content">{{ item.content }}</div>
-          <div class="notification-time">{{ formatRelativeTime(item.createdAt) }}</div>
+          <div class="notification-msg">
+            {{ item.title }}
+          </div>
+          <div class="notification-content">
+            {{ item.content }}
+          </div>
+          <div class="notification-time">
+            {{ formatRelativeTime(item.createdAt) }}
+          </div>
         </div>
-        <div v-if="!item.isRead" class="unread-dot" />
+        <div
+          v-if="!item.isRead"
+          class="unread-dot"
+        />
       </div>
     </el-scrollbar>
   </el-popover>

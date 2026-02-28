@@ -2,7 +2,12 @@
   <div class="project-management-page">
     <div class="page-header">
       <h2>專案管理</h2>
-      <el-button type="primary" @click="openCreateDialog">新增專案</el-button>
+      <el-button
+        type="primary"
+        @click="openCreateDialog"
+      >
+        新增專案
+      </el-button>
     </div>
 
     <div class="filter-bar">
@@ -13,44 +18,89 @@
         style="width: 200px"
         @change="fetchProjects"
       >
-        <el-option label="ACTIVE" value="ACTIVE" />
-        <el-option label="CLOSED" value="CLOSED" />
+        <el-option
+          label="ACTIVE"
+          value="ACTIVE"
+        />
+        <el-option
+          label="CLOSED"
+          value="CLOSED"
+        />
       </el-select>
     </div>
 
-    <el-table v-loading="loading" :data="projects" stripe style="width: 100%">
-      <el-table-column prop="name" label="專案名稱" min-width="180" />
-      <el-table-column label="狀態" width="100">
+    <el-table
+      v-loading="loading"
+      :data="projects"
+      stripe
+      style="width: 100%"
+    >
+      <el-table-column
+        prop="name"
+        label="專案名稱"
+        min-width="180"
+      />
+      <el-table-column
+        label="狀態"
+        width="100"
+      >
         <template #default="{ row }">
           <el-tag :type="row.status === 'ACTIVE' ? 'success' : 'info'">
             {{ row.status }}
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="totalBudgetHours" label="預算時數" width="120" />
-      <el-table-column prop="consumedHours" label="已用時數" width="120" />
-      <el-table-column prop="pmName" label="專案經理" width="140" />
-      <el-table-column label="操作" width="260" fixed="right">
+      <el-table-column
+        prop="totalBudgetHours"
+        label="預算時數"
+        width="120"
+      />
+      <el-table-column
+        prop="consumedHours"
+        label="已用時數"
+        width="120"
+      />
+      <el-table-column
+        prop="pmName"
+        label="專案經理"
+        width="140"
+      />
+      <el-table-column
+        label="操作"
+        width="260"
+        fixed="right"
+      >
         <template #default="{ row }">
-          <el-button size="small" @click="openEditDialog(row)" :disabled="row.status === 'CLOSED'">
+          <el-button
+            size="small"
+            :disabled="row.status === 'CLOSED'"
+            @click="openEditDialog(row)"
+          >
             編輯
           </el-button>
           <el-button
             size="small"
             type="warning"
-            @click="handleClose(row)"
             :disabled="row.status === 'CLOSED'"
+            @click="handleClose(row)"
           >
             關閉
           </el-button>
-          <el-button size="small" type="danger" @click="handleDelete(row)">
+          <el-button
+            size="small"
+            type="danger"
+            @click="handleDelete(row)"
+          >
             刪除
           </el-button>
         </template>
       </el-table-column>
     </el-table>
 
-    <div class="pagination-bar" v-if="totalElements > 0">
+    <div
+      v-if="totalElements > 0"
+      class="pagination-bar"
+    >
       <el-pagination
         v-model:current-page="currentPage"
         :page-size="pageSize"
@@ -60,7 +110,10 @@
       />
     </div>
 
-    <el-empty v-if="!loading && projects.length === 0" description="目前沒有專案" />
+    <el-empty
+      v-if="!loading && projects.length === 0"
+      description="目前沒有專案"
+    />
 
     <!-- Create/Edit Dialog -->
     <el-dialog

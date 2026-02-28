@@ -2,38 +2,85 @@
   <div class="task-management-page">
     <div class="page-header">
       <h2>任務管理</h2>
-      <el-button type="primary" @click="openCreateDialog">新增任務</el-button>
+      <el-button
+        type="primary"
+        @click="openCreateDialog"
+      >
+        新增任務
+      </el-button>
     </div>
 
-    <el-table v-loading="loading" :data="tasks" stripe border style="width: 100%">
-      <el-table-column prop="name" label="任務名稱" min-width="180" />
-      <el-table-column prop="status" label="狀態" width="120">
+    <el-table
+      v-loading="loading"
+      :data="tasks"
+      stripe
+      border
+      style="width: 100%"
+    >
+      <el-table-column
+        prop="name"
+        label="任務名稱"
+        min-width="180"
+      />
+      <el-table-column
+        prop="status"
+        label="狀態"
+        width="120"
+      >
         <template #default="{ row }">
-          <el-tag :type="statusTagType(row.status)" size="small">{{ statusLabel(row.status) }}</el-tag>
+          <el-tag
+            :type="statusTagType(row.status)"
+            size="small"
+          >
+            {{ statusLabel(row.status) }}
+          </el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="budgetHours" label="配額時數" width="100" align="right" />
-      <el-table-column prop="consumedHours" label="已用時數" width="100" align="right" />
-      <el-table-column prop="remainingHours" label="剩餘時數" width="100" align="right" />
-      <el-table-column prop="assigneeName" label="指派人員" width="120">
+      <el-table-column
+        prop="budgetHours"
+        label="配額時數"
+        width="100"
+        align="right"
+      />
+      <el-table-column
+        prop="consumedHours"
+        label="已用時數"
+        width="100"
+        align="right"
+      />
+      <el-table-column
+        prop="remainingHours"
+        label="剩餘時數"
+        width="100"
+        align="right"
+      />
+      <el-table-column
+        prop="assigneeName"
+        label="指派人員"
+        width="120"
+      >
         <template #default="{ row }">
           {{ row.assigneeName ?? '未指派' }}
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="220" fixed="right">
+      <el-table-column
+        label="操作"
+        width="220"
+        fixed="right"
+      >
         <template #default="{ row }">
           <el-button
             size="small"
-            @click="openEditDialog(row)"
             :disabled="isTerminal(row.status)"
+            @click="openEditDialog(row)"
           >
             編輯
           </el-button>
           <el-button
             size="small"
             type="warning"
-            @click="handleClose(row)"
             :disabled="isTerminal(row.status)"
+            @click="handleClose(row)"
           >
             關閉
           </el-button>
@@ -48,7 +95,10 @@
       </el-table-column>
     </el-table>
 
-    <div v-if="totalPages > 1" class="pagination-wrapper">
+    <div
+      v-if="totalPages > 1"
+      class="pagination-wrapper"
+    >
       <el-pagination
         v-model:current-page="currentPage"
         :page-size="pageSize"
@@ -58,7 +108,10 @@
       />
     </div>
 
-    <el-empty v-if="!loading && tasks.length === 0" description="尚無任務" />
+    <el-empty
+      v-if="!loading && tasks.length === 0"
+      description="尚無任務"
+    />
 
     <!-- Create/Edit Dialog -->
     <el-dialog

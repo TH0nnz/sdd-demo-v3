@@ -4,6 +4,7 @@ import com.workreport.dto.common.PageResponse;
 import com.workreport.dto.task.CreateTaskRequest;
 import com.workreport.dto.task.TaskResponse;
 import com.workreport.dto.task.UpdateTaskRequest;
+import com.workreport.dto.user.UserResponse;
 import com.workreport.service.TaskService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Pageable;
@@ -21,6 +22,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/projects/{projectId}/tasks")
 @PreAuthorize("hasAnyRole('PM', 'ADMIN')")
@@ -37,6 +40,11 @@ public class TaskController {
             @PathVariable Long projectId,
             @PageableDefault(size = 20) Pageable pageable) {
         return ResponseEntity.ok(taskService.getTasks(projectId, pageable));
+    }
+
+    @GetMapping("/assignable-executors")
+    public ResponseEntity<List<UserResponse>> getAssignableExecutors(@PathVariable Long projectId) {
+        return ResponseEntity.ok(taskService.getAssignableExecutors(projectId));
     }
 
     @PostMapping
