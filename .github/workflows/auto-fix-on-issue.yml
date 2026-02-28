@@ -58,8 +58,11 @@ jobs:
 
             // Post a detailed instruction comment so the agent knows exactly
             // what to produce (code fix + .autofix/ documentation + PR).
+            const baseBranch = context.payload.repository.default_branch || 'main';
             const comment = [
               `@copilot 請根據此 Issue 的描述進行修復${categoryTag}。`,
+              ``,
+              `> **目標分支**：請將 PR 開立至 \`${baseBranch}\` 分支。`,
               ``,
               `## 任務要求`,
               `1. 根據 Issue 內容，找出相關程式碼並進行修正。`,
