@@ -34,7 +34,7 @@ jobs:
             | grep -Eo '(ui|flow|logic|add)' | head -1 || true)
           echo "category=${CATEGORY}" >> "$GITHUB_OUTPUT"
 
-      - name: Assign to Copilot and post instructions
+      - name: Notify Copilot and post instructions
         uses: actions/github-script@v7
         env:
           CATEGORY: ${{ steps.ctx.outputs.category }}
@@ -45,40 +45,31 @@ jobs:
             const categoryTag = category ? ` [${category}]` : '';
             const autofixFile = `.autofix/issue-${issueNumber}.md`;
 
-            // Assign the issue to the Copilot coding agent to trigger it.
-            try {
-              await github.rest.issues.addAssignees({
-                owner:        context.repo.owner,
-                repo:         context.repo.repo,
-                issue_number: issueNumber,
-                assignees:    ['copilot'],
-              });
-            } catch (e) {
-              core.warning(`Could not assign Copilot: ${e.message}`);
-            }
+            // Note: Copilot assignment is handled via @copilot mention in the comment below.
+            // GitHub's mention system will notify the Copilot agent automatically.
+            core.info(`Workflow triggered for Issue #${issueNumber} with instructions for Copilot`);
 
-            // Verify that Copilot is now listed as an assignee.
-            const { data: issueData } = await github.rest.issues.get({
-              owner:        context.repo.owner,
-              repo:         context.repo.repo,
-              issue_number: issueNumber,
-            });
-            const assigneeLogins = issueData.assignees.map(a => a.login.toLowerCase());
-            const copilotAssigned = assigneeLogins.includes('copilot');
-            if (copilotAssigned) {
-              core.info(`Copilot successfully assigned to Issue #${issueNumber}, assignees: ${assigneeLogins.join(', ')}`);
-            } else {
-              core.warning(`Copilot assignment may not have succeeded. Current assignees: ${assigneeLogins.join(', ') || '(none)'}`);
-            }
-
-            // Post a detailed instruction comment so the agent knows exactly
-            // what to produce (code fix + .autofix/ documentation + PR).
+            // Post an instruction comment for the Copilot agent.
             const baseBranch = context.payload.repository.default_branch || 'main';
             const comment = [
-              `@copilot 請根據此 Issue 的描述進行修復${categoryTag}。`,
+              `@copilot 請根據此 Issue 的描述進行修復${categoryTag}。（由 Issue 開立自動觸發）`,
               ``,
               `> **目標分支**：請將 PR 開立至 \`${baseBranch}\` 分支。`,
               ``,
+              `## 資訊檢查清單（請確保 Issue 內容已補充）`,
+              ``,
+              `在本人進行修復前，請確認 Issue 內容已包含以下資訊：`,
+              ``,
+              `- [ ] **類型**：UI / Flow / Logic / Add 其中之一`,
+              `- [ ] **重現步驟**：清楚列出如何重現問題`,
+              `- [ ] **實際結果**：描述目前觀察到的不正確行為`,
+              `- [ ] **預期結果**：描述期望的正確行為`,
+              `- [ ] **相關元件/檔案**（強烈建議）：指出出問題的檔案`,
+              `- [ ] **補充資訊**（可選）：如有 Console log 或截圖，請附上`,
+              ``,
+              `若 Issue 內容不完整，請先補充資訊後再使用 /fix。`,
+              ``,
+
               `## 任務要求`,
               `1. 根據 Issue 內容，找出相關程式碼並進行修正。`,
               `2. 完成修改後，在 \`${autofixFile}\` 建立一份 Markdown 報告，包含：`,

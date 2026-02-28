@@ -1,11 +1,11 @@
 name: Auto-Fix from Issue Comment
 
 # ==============================================================================
-# 手動重觸發工作流：在 Issue 留言輸入 /fix 可重新指派 Copilot 進行修復
+# 手動重觸發工作流：在 Issue 留言輸入 /fix 可重新通知 Copilot 進行修復
 # ==============================================================================
 #
-# 此 Workflow 在 Issue 中偵測到 /fix 指令時，將 Issue 指派給 GitHub Copilot
-# 並發佈詳細的任務指示，請 Copilot 修復程式碼並產生 .autofix/ 報告。
+# 此 Workflow 在 Issue 中偵測到 /fix 指令時，透過 @copilot mention
+# 發佈詳細的任務指示，請 Copilot 修復程式碼並產生 .autofix/ 報告。
 #
 # 【使用方式】
 #   在任何 Issue 的留言中輸入：
@@ -57,7 +57,7 @@ jobs:
             | grep -Eo '(ui|flow|logic|add)' | head -1 || true)
           echo "category=${CATEGORY}" >> "$GITHUB_OUTPUT"
 
-      - name: Assign to Copilot and post instructions
+      - name: Notify Copilot and post instructions
         uses: actions/github-script@v7
         env:
           CATEGORY: ${{ steps.ctx.outputs.category }}
