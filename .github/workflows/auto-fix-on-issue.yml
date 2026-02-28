@@ -33,7 +33,7 @@ jobs:
           echo "branch_name=${BRANCH_NAME}"   >> "$GITHUB_OUTPUT"
           echo "ISSUE_URL=${ISSUE_URL}"       >> "$GITHUB_ENV"
 
-          # Extract the issue type (ui / flow / logic) from the "類型" section of the body.
+          # Extract the issue type (ui / flow / logic / add) from the "類型" section of the body.
           # The issue template renders it as:
           #   ### 類型
           #   <blank line>
