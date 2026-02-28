@@ -46,14 +46,22 @@ body:
     validations:
       required: true
 
+  - type: input
+    id: component
+    attributes:
+      label: 相關元件 / 檔案
+      description: "請填入出問題的元件名稱或檔案路徑，讓 AI agent 能快速定位程式碼（強烈建議填寫）"
+      placeholder: "例：WorkEntryService.java / pages/executor/WorkEntryPage.vue / TaskController"
+    validations:
+      required: false
+
   - type: textarea
     id: extra
     attributes:
       label: 補充
-      description: "請附上相關 log、截圖或檔案路徑（可選）"
+      description: "請附上相關 log、截圖或其他資訊（可選）"
       placeholder: |
         - Log 片段：
         - 截圖：
-        - 相關檔案路徑：
     validations:
       required: false
