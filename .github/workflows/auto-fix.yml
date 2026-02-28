@@ -80,6 +80,20 @@ jobs:
               core.warning(`Could not assign Copilot: ${e.message}`);
             }
 
+            // Verify that Copilot is now listed as an assignee.
+            const { data: issueData } = await github.rest.issues.get({
+              owner:        context.repo.owner,
+              repo:         context.repo.repo,
+              issue_number: issueNumber,
+            });
+            const assigneeLogins = issueData.assignees.map(a => a.login.toLowerCase());
+            const copilotAssigned = assigneeLogins.includes('copilot');
+            if (copilotAssigned) {
+              core.info(`Copilot successfully assigned to Issue #${issueNumber}, assignees: ${assigneeLogins.join(', ')}`);
+            } else {
+              core.warning(`Copilot assignment may not have succeeded. Current assignees: ${assigneeLogins.join(', ') || '(none)'}`);
+            }
+
             // Post an instruction comment for the Copilot agent.
             const baseBranch = context.payload.repository.default_branch || 'main';
             const comment = [
