@@ -7,8 +7,8 @@ name: Auto-Fix from Issue Comment
 # 此 Workflow 用於自動建立修復分支和 PR，優先使用 PAT_TOKEN 進行認證。
 #
 # 【Token 優先級】
-#   1. 優先使用：PAT_TOKEN（Personal Access Token）
-#   2. 降級使用：GITHUB_TOKEN（GitHub Actions 預設 token）
+#   1. Checkout 步驟：使用 github.token（確保 checkout 一定成功）
+#   2. Push / PR 步驟：使用 PAT_TOKEN（需要額外寫入權限）
 #
 # 【如何設定 PAT_TOKEN】
 #   1. 前往儲存庫（Repository）頁面。
@@ -25,7 +25,7 @@ name: Auto-Fix from Issue Comment
 #   6. 儲存
 #
 # 【注意事項】
-#   - 如果未設定 PAT_TOKEN，workflow 會自動降級使用 GitHub Actions 內建的 GITHUB_TOKEN。
+#   - 如果未設定 PAT_TOKEN，workflow 會在第一步驟立即失敗並顯示清楚的錯誤訊息。
 #   - 確保在 Settings > Actions > General 已啟用：
 #       ✓ Allow all actions and reusable workflows
 #       ✓ Require approval for first-time contributors（可按需開關）
@@ -53,6 +53,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Verify PAT_TOKEN is configured
+        env:
+          HAS_PAT: ${{ secrets.PAT_TOKEN != '' }}
+        run: |
+          if [ "$HAS_PAT" != "true" ]; then
+            echo "::error::PAT_TOKEN secret is not set. Please add it in Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+
       - name: Clean workspace
         run: |
           rm -rf .autofix/ || true
@@ -145,18 +154,18 @@ jobs:
         env:
           BRANCH_NAME: ${{ steps.ctx.outputs.branch_name }}
         run: |
-          # checkout@v4 已透過 github.token 注入 git 憑證，搭配頂層 contents:write 即可 push
+          # 用 PAT 來 push（避免 GITHUB_TOKEN 權限限制）
+          git remote set-url origin "https://x-access-token:${{ secrets.PAT_TOKEN }}@github.com/${{ github.repository }}.git"
           git push --force origin "$BRANCH_NAME"
 
       - name: Create pull request
-        # github.token 搭配頂層 permissions: pull-requests: write 即可建立 PR，
-        # 前提：Settings > Actions > General > Allow GitHub Actions to create and approve pull requests
+        # 用 PAT 來呼叫 PR API（避免 GITHUB_TOKEN 無法開 PR 的情況）
         uses: actions/github-script@v7
         env:
           ISSUE_TITLE: ${{ github.event.issue.title }}
           COMMENT_BODY: ${{ github.event.comment.body }}
         with:
-          github-token: ${{ github.token }}
+          github-token: ${{ secrets.PAT_TOKEN }}
           script: |
             const issueNumber = ${{ steps.ctx.outputs.issue_number }};
             const branchName  = '${{ steps.ctx.outputs.branch_name }}';
