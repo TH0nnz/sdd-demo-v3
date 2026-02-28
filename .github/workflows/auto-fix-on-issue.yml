@@ -69,6 +69,16 @@ jobs:
               `   - **修復說明**：說明修復邏輯與思路`,
               `   - **測試步驟**：如何驗證修復成果`,
               `3. 將所有變更（程式碼修改 + \`${autofixFile}\`）放入同一個 commit，並開立 PR 供審核。`,
+              ``,
+              `## Commit 錯誤處理`,
+              `如果在 commit 時遇到錯誤，請依照以下步驟排除：`,
+              `- **Lint／格式錯誤**：執行對應的格式化指令（如 \`eslint --fix\`、\`prettier --write\`）修正後重新 commit。`,
+              `- **測試失敗**：閱讀錯誤訊息，修正導致測試失敗的程式碼後重新 commit。`,
+              `- **Merge conflict**：使用 \`git status\` 確認衝突檔案，手動解決衝突後執行 \`git add\` 再重新 commit。`,
+              `- **Nothing to commit**：確認修改已正確儲存至磁碟，必要時重新套用變更。`,
+              `- **其他錯誤**：閱讀完整錯誤訊息，依錯誤類型採取對應修正，排除後再重試 commit。`,
+              ``,
+              `每次排除錯誤後，請重新驗證所有變更並再次嘗試 commit，直到成功為止。`,
             ].join('\n');
 
             await github.rest.issues.createComment({
