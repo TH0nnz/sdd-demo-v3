@@ -41,4 +41,20 @@ export const deptApi = {
   getMemberTasks(userId: number) {
     return http.get<MemberTask[]>(`/dept/members/${userId}/tasks`)
   },
+
+  listDepartmentsForHr() {
+    return http.get<Department[]>('/hr/departments')
+  },
+
+  createDepartment(data: { name: string }) {
+    return http.post<Department>('/hr/departments', data)
+  },
+
+  updateDepartment(id: number, data: { name: string }) {
+    return http.put<Department>(`/hr/departments/${id}`, data)
+  },
+
+  deleteDepartment(id: number) {
+    return http.delete<void>(`/hr/departments/${id}`)
+  },
 }
