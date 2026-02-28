@@ -81,6 +81,12 @@ const router = createRouter({
           component: () => import('@/pages/hr/UserManagementPage.vue'),
           meta: { roles: ['HR'] as Role[] },
         },
+        {
+          path: 'hr/departments',
+          name: 'hr-departments',
+          component: () => import('@/pages/hr/DepartmentManagementPage.vue'),
+          meta: { roles: ['HR'] as Role[] },
+        },
         // DEPT_MANAGER
         {
           path: 'dept/overview',

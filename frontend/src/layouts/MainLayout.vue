@@ -56,6 +56,10 @@
             <el-icon><User /></el-icon>
             <span>使用者管理</span>
           </el-menu-item>
+          <el-menu-item index="/hr/departments">
+            <el-icon><OfficeBuilding /></el-icon>
+            <span>部門管理</span>
+          </el-menu-item>
         </template>
 
         <!-- DEPT_MANAGER -->

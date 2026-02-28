@@ -20,4 +20,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findByRoleAndDepartmentId(@Param("role") Role role, @Param("departmentId") Long departmentId);
 
     List<User> findByDepartmentId(Long departmentId);
+
+    boolean existsByDepartmentId(Long departmentId);
 }
