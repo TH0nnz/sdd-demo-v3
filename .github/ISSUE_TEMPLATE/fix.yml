@@ -12,6 +12,7 @@ body:
         - ui
         - flow
         - logic
+        - add
     validations:
       required: true
 

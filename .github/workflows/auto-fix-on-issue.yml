@@ -40,7 +40,7 @@ jobs:
           #   <type value>
           CATEGORY=$(echo "$ISSUE_BODY" \
             | awk '/^### 類型/{found=1; next} found && NF{print tolower($0); exit}' \
-            | grep -Eo '(ui|flow|logic)' | head -1 || true)
+            | grep -Eo '(ui|flow|logic|add)' | head -1 || true)
           echo "category=${CATEGORY}" >> "$GITHUB_OUTPUT"
 
       - name: Create fix branch
