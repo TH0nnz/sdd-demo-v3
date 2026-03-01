@@ -12,7 +12,7 @@ permissions:
 jobs:
   auto-fix:
     # Only run for issues filed by the repository owner
-    if: github.event.issue.user.login == 'TH0nnz'
+    if: github.event.issue.user.login == github.repository_owner
     runs-on: ubuntu-latest
 
     steps:

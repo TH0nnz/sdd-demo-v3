@@ -38,7 +38,7 @@ jobs:
   auto-fix:
     if: |
       github.event.issue.pull_request == null &&
-      github.event.comment.user.login == 'TH0nnz' &&
+      github.event.comment.user.login == github.repository_owner &&
       contains(github.event.comment.body, '/fix')
     runs-on: ubuntu-latest
 
