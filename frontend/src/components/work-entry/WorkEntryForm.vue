@@ -54,8 +54,8 @@ function disabledDate(date: Date): boolean {
 async function loadTasks() {
   loadingTasks.value = true
   try {
-    const { data } = await myTasksApi.getMyTasks({ status: 'IN_PROGRESS' })
-    tasks.value = data.content
+    const { data } = await myTasksApi.getMyTasks()
+    tasks.value = data.content.filter(t => t.status !== 'COMPLETED' && t.status !== 'CLOSED')
   } catch {
     ElMessage.error('載入任務清單失敗')
   } finally {
