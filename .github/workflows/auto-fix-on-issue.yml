@@ -8,7 +8,6 @@ permissions:
   contents: write      # 允許推送程式碼
   pull-requests: write # 允許建立 PR
   issues: write        # 允許操作 issues
-  actions: read        # 允許讀取 Actions 設定（用於驗證）
 
 jobs:
   auto-fix:
@@ -17,54 +16,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Validate GitHub Actions Configuration
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const owner = context.repo.owner;
-            const repo  = context.repo.repo;
-            let allOk = true;
-
-            core.startGroup('GitHub Actions 設定驗證');
-
-            try {
-              const { data } = await github.rest.actions.getGithubActionsDefaultWorkflowPermissionsRepository({ owner, repo });
-
-              if (data.default_workflow_permissions === 'write') {
-                core.info('✅ Workflow permissions: Read and write');
-              } else {
-                core.error(`❌ Workflow permissions 設定不正確（目前: ${data.default_workflow_permissions}，需要: write）`);
-                core.error('   → 請前往 Settings > Actions > General > Workflow permissions');
-                core.error('   → 選擇「Read and write permissions」後儲存');
-                allOk = false;
-              }
-
-              if (data.can_approve_pull_request_reviews) {
-                core.info('✅ Allow GitHub Actions to create and approve pull requests: 已啟用');
-              } else {
-                core.error('❌「Allow GitHub Actions to create and approve pull requests」未啟用');
-                core.error('   → 請前往 Settings > Actions > General > Workflow permissions');
-                core.error('   → 勾選「Allow GitHub Actions to create and approve pull requests」後儲存');
-                allOk = false;
-              }
-            } catch (err) {
-              if (err.status === 403 || err.status === 404) {
-                core.warning('⚠️ 無法自動讀取 Workflow permissions（需要 admin 存取權）');
-                core.warning('   請手動確認以下 GitHub 設定（Settings > Actions > General > Workflow permissions）：');
-                core.warning('   ✓ 選擇「Read and write permissions」');
-                core.warning('   ✓ 勾選「Allow GitHub Actions to create and approve pull requests」');
-              } else {
-                core.error(`❌ 驗證 Workflow permissions 時發生錯誤：${err.message}`);
-                allOk = false;
-              }
-            }
-
-            core.endGroup();
-
-            if (!allOk) {
-              core.setFailed('❗ GitHub Actions 設定不完整，請依上述錯誤訊息修正後重試。');
-            }
-
       - name: Extract issue metadata
         id: ctx
         env:
