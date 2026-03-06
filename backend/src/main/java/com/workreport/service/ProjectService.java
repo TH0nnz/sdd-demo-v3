@@ -89,9 +89,13 @@ public class ProjectService {
             throw new BusinessRuleException("指定的使用者無 PM 角色");
         }
 
+        Department department = departmentRepository.findById(request.departmentId())
+                .orElseThrow(() -> new ResourceNotFoundException("Department not found: " + request.departmentId()));
+
         project.setName(request.name());
         project.setTotalBudgetHours(request.totalBudgetHours());
         project.setPm(pm);
+        project.setDepartment(department);
         project = projectRepository.save(project);
 
         return toResponse(project);

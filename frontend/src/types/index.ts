@@ -65,6 +65,7 @@ export interface UpdateProjectRequest {
   name: string
   totalBudgetHours: number
   pmId: number
+  departmentId: number
 }
 
 // === Task ===
