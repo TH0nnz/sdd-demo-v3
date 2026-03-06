@@ -8,6 +8,11 @@ spring:
     properties:
       hibernate:
         format_sql: true
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    clean-disabled: false
 
 jwt:
   secret: test-secret-key-for-unit-testing-only-not-for-production-use-2026

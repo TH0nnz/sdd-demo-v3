@@ -31,6 +31,12 @@
     <!-- Newline at end of file -->
     <module name="NewlineAtEndOfFile"/>
 
+    <!-- Size Violations -->
+    <module name="LineLength">
+        <property name="max" value="120"/>
+        <property name="ignorePattern" value="^package.*|^import.*|a]* href|href|http://|https://|ftp://"/>
+    </module>
+
     <module name="TreeWalker">
         <!-- Naming Conventions -->
         <module name="PackageName">
@@ -57,10 +63,6 @@
         <module name="UnusedImports"/>
 
         <!-- Size Violations -->
-        <module name="LineLength">
-            <property name="max" value="120"/>
-            <property name="ignorePattern" value="^package.*|^import.*|a]* href|href|http://|https://|ftp://"/>
-        </module>
         <module name="MethodLength">
             <property name="max" value="50"/>
         </module>

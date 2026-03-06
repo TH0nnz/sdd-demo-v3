@@ -8,6 +8,7 @@
 
 - [專案說明](#專案說明)
 - [快速啟動](#快速啟動)
+- [部署到 linux server（Docker Compose）](#部署到-linux-server docker-compose)
 - [Auto-Fix 工作流程（`/fix` 指令）](#auto-fix-工作流程fix-指令)
 - [Speckit 斜線指令](#speckit-斜線指令)
 - [目錄結構](#目錄結構)
@@ -49,6 +50,92 @@ docker compose up -d --build
 完整的本地開發步驟（含測試帳號、環境變數說明）請參閱：
 
 👉 [`specs/002-work-reporting-system/quickstart.md`](specs/002-work-reporting-system/quickstart.md)
+
+---
+
+## 部署到 192.168.10.248（Docker Compose）
+
+目標：將專案同步到遠端主機 `user@ip:/home/infoadmin/sdd-demo-v3`，並在遠端以 `docker compose` 啟動。
+
+### 一鍵部署腳本
+
+```bash
+./deploy.sh
+```
+
+執行時帶入連線參數（你要的做法）：
+
+```bash
+./deploy.sh --host 192.168.10.248 --user infoadmin --password 'your_password'
+```
+
+也可指定遠端路徑：
+
+```bash
+./deploy.sh --host 192.168.10.248 --user infoadmin --password 'your_password' --remote-path /home/infoadmin/sdd-demo-v3
+```
+
+若不需要重新建構映像：
+
+```bash
+./deploy.sh --host 192.168.10.248 --user infoadmin --password 'your_password' --no-build
+```
+
+### 1. 本機同步專案到遠端
+
+在專案根目錄執行：
+
+```bash
+rsync -avz --delete \
+  --exclude '.git' \
+  --exclude 'backend/build' \
+  --exclude 'backend/.gradle' \
+  --exclude 'frontend/node_modules' \
+  --exclude 'frontend/dist' \
+  ./ user@ip:/home/infoadmin/sdd-demo-v3/
+```
+
+### 2. 連線遠端並啟動容器
+
+```bash
+ssh user@ip
+cd /home/infoadmin/sdd-demo-v3
+docker compose up -d --build
+```
+
+### 3. 驗證服務狀態
+
+```bash
+docker compose ps
+docker compose logs -f --tail=200
+```
+
+### 4. 重新部署（後續更新）
+
+每次更新程式碼後，重複步驟 1 和步驟 2 即可。
+
+### 5. 常用維運指令
+
+```bash
+# 停止服務
+docker compose down
+
+# 重啟單一服務（範例：backend）
+docker compose up -d --build backend
+
+# 清理未使用影像
+docker image prune -f
+```
+
+### 6. 防火牆與連接埠
+
+此專案預設映射：
+
+- 前端：`80`
+- 後端：`8089`
+- PostgreSQL：`5454`
+
+若要讓外部可連線，請確認遠端主機防火牆已放行上述連接埠。
 
 ---
 
@@ -155,6 +242,13 @@ sdd-demo-v3/
 | pnpm | 9.x | 前端套件管理 |
 | Docker & Docker Compose | 最新 | 本地開發資料庫 + 部署 |
 | PostgreSQL | 18.1 | 透過 Docker 執行即可 |
+
+**後端建置注意**：請使用 **Java 24 或 21 LTS** 執行 Gradle。若出現 `Unsupported class file major version 69`，表示目前為 Java 25，Gradle 8.x 尚不支援。請設定 `JAVA_HOME` 後再執行：
+
+```bash
+export JAVA_HOME=/path/to/jdk24   # 例如 Azul 24 或 OpenJDK 24
+cd backend && ./gradlew build
+```
 
 ---
 
@@ -385,6 +479,15 @@ docker-compose exec db psql -U workreport -d workreport
 ```
 
 ---
+
+在專案根目錄或 backend 目錄下執行（需使用 Java 24 或 21，見上方「後端建置注意」）：
+
+| 想做什麼 | 指令 |
+|----------|------|
+| 編譯 | `cd backend && ./gradlew build` |
+| 只編譯不跑測試 | `cd backend && ./gradlew build -x test` |
+| 跑測試 | `cd backend && ./gradlew test` |
+| 啟動 Spring Boot 應用 | `cd backend && ./gradlew bootRun` |
 
 ## 數據庫遷移說明
 
