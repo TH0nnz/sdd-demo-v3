@@ -125,13 +125,14 @@ class AdminIntegrationTest {
                 new CreateProjectRequest("Original Project", new BigDecimal("100.0"), PM_USER_ID, DEPT_ID), ProjectResponse.class);
         Long projectId = createResp.getBody().id();
 
-        var updateReq = new UpdateProjectRequest("Updated Project", new BigDecimal("500.0"), PM_USER_ID);
+        var updateReq = new UpdateProjectRequest("Updated Project", new BigDecimal("500.0"), PM_USER_ID, DEPT_ID);
         ResponseEntity<ProjectResponse> response = doPut("/api/projects/" + projectId, updateReq, ProjectResponse.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().name()).isEqualTo("Updated Project");
         assertThat(response.getBody().totalBudgetHours()).isEqualByComparingTo(new BigDecimal("500.0"));
+        assertThat(response.getBody().departmentId()).isEqualTo(DEPT_ID);
     }
 
     @Test
