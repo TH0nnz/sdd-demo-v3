@@ -46,8 +46,7 @@
             :color="progressColor(Number(project.usageRate))"
           />
           <div class="budget-detail">
-            已用 {{ project.consumedHours }} / {{ project.totalBudgetHours }} 小時
-            （剩餘 {{ project.remainingHours }}）
+            未分配 {{ project.unallocatedHours }} / 已分配（配額時數 {{ project.allocatedQuotaHours }} / 已用時數 {{ project.allocatedConsumedHours }} / 剩餘時數 {{ project.allocatedRemainingHours }}）/ 總時數 {{ project.totalBudgetHours }} 小時
           </div>
         </div>
 

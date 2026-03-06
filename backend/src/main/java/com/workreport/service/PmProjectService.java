@@ -46,6 +46,8 @@ public class PmProjectService {
         }
 
         TaskSummaryDto taskSummary = buildTaskSummary(project.getId());
+        AllocatedHours allocated = buildAllocatedHours(project.getId());
+        BigDecimal unallocated = project.getTotalBudgetHours().subtract(allocated.quota);
 
         return new ProjectDashboardResponse(
                 project.getId(),
@@ -55,8 +57,32 @@ public class PmProjectService {
                 project.getConsumedHours(),
                 remaining,
                 usageRate,
+                unallocated,
+                allocated.quota,
+                allocated.consumed,
+                allocated.remaining,
                 taskSummary
         );
+    }
+
+    private static class AllocatedHours {
+        final BigDecimal quota;
+        final BigDecimal consumed;
+        final BigDecimal remaining;
+
+        AllocatedHours(BigDecimal quota, BigDecimal consumed, BigDecimal remaining) {
+            this.quota = quota;
+            this.consumed = consumed;
+            this.remaining = remaining;
+        }
+    }
+
+    private AllocatedHours buildAllocatedHours(Long projectId) {
+        Object[] row = taskRepository.sumHoursByProjectId(projectId);
+        BigDecimal quota = row != null && row[0] != null ? (BigDecimal) row[0] : BigDecimal.ZERO;
+        BigDecimal consumed = row != null && row[1] != null ? (BigDecimal) row[1] : BigDecimal.ZERO;
+        BigDecimal remaining = quota.subtract(consumed);
+        return new AllocatedHours(quota, consumed, remaining);
     }
 
     private TaskSummaryDto buildTaskSummary(Long projectId) {

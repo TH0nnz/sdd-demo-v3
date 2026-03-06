@@ -226,6 +226,10 @@ export interface ProjectDashboard {
   consumedHours: number
   remainingHours: number
   usageRate: number
+  unallocatedHours: number
+  allocatedQuotaHours: number
+  allocatedConsumedHours: number
+  allocatedRemainingHours: number
   taskSummary: TaskSummary
 }
 

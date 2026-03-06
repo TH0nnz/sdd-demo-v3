@@ -77,6 +77,8 @@ class PmProjectServiceTest {
                                 new Object[]{TaskStatus.COMPLETED, 1L},
                                 new Object[]{TaskStatus.CLOSED, 1L}
                         ));
+                when(taskRepository.sumHoursByProjectId(1L))
+                        .thenReturn(new Object[]{new BigDecimal("60.0"), new BigDecimal("15.0")});
 
                 PageResponse<ProjectDashboardResponse> result =
                         pmProjectService.getMyProjects(PM_USER_ID, pageable);
@@ -95,6 +97,10 @@ class PmProjectServiceTest {
                 assertThat(dto.consumedHours()).isEqualByComparingTo("25.0");
                 assertThat(dto.remainingHours()).isEqualByComparingTo("75.0");
                 assertThat(dto.usageRate()).isEqualByComparingTo("25.0");
+                assertThat(dto.unallocatedHours()).isEqualByComparingTo("40.0");
+                assertThat(dto.allocatedQuotaHours()).isEqualByComparingTo("60.0");
+                assertThat(dto.allocatedConsumedHours()).isEqualByComparingTo("15.0");
+                assertThat(dto.allocatedRemainingHours()).isEqualByComparingTo("45.0");
 
                 TaskSummaryDto taskSummary = dto.taskSummary();
                 assertThat(taskSummary.total()).isEqualTo(7);
@@ -105,6 +111,7 @@ class PmProjectServiceTest {
 
                 verify(projectRepository).findByPmId(PM_USER_ID, pageable);
                 verify(taskRepository).countByProjectIdGroupByStatus(1L);
+                verify(taskRepository).sumHoursByProjectId(1L);
             }
 
             @Test
@@ -116,6 +123,7 @@ class PmProjectServiceTest {
                 when(projectRepository.findByPmId(eq(PM_USER_ID), eq(pageable)))
                         .thenReturn(new PageImpl<>(List.of(project), pageable, 1));
                 when(taskRepository.countByProjectIdGroupByStatus(1L)).thenReturn(List.of());
+                when(taskRepository.sumHoursByProjectId(1L)).thenReturn(new Object[]{BigDecimal.ZERO, BigDecimal.ZERO});
 
                 PageResponse<ProjectDashboardResponse> result =
                         pmProjectService.getMyProjects(PM_USER_ID, pageable);
@@ -135,6 +143,7 @@ class PmProjectServiceTest {
                         .thenReturn(List.<Object[]>of(
                                 new Object[]{TaskStatus.IN_PROGRESS, 5L}
                         ));
+                when(taskRepository.sumHoursByProjectId(1L)).thenReturn(new Object[]{new BigDecimal("50.0"), new BigDecimal("10.0")});
 
                 PageResponse<ProjectDashboardResponse> result =
                         pmProjectService.getMyProjects(PM_USER_ID, pageable);

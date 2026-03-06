@@ -12,6 +12,10 @@ public record ProjectDashboardResponse(
         BigDecimal consumedHours,
         BigDecimal remainingHours,
         BigDecimal usageRate,
+        BigDecimal unallocatedHours,
+        BigDecimal allocatedQuotaHours,
+        BigDecimal allocatedConsumedHours,
+        BigDecimal allocatedRemainingHours,
         TaskSummaryDto taskSummary
 ) {
 
