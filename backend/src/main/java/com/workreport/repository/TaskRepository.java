@@ -30,5 +30,5 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     List<Object[]> countByProjectIdGroupByStatus(@Param("projectId") Long projectId);
 
     @Query("SELECT SUM(t.budgetHours), SUM(t.consumedHours) FROM Task t WHERE t.project.id = :projectId")
-    Object[] sumHoursByProjectId(@Param("projectId") Long projectId);
+    List<Object[]> sumHoursByProjectId(@Param("projectId") Long projectId);
 }

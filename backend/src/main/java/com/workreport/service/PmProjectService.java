@@ -78,11 +78,22 @@ public class PmProjectService {
     }
 
     private AllocatedHours buildAllocatedHours(Long projectId) {
-        Object[] row = taskRepository.sumHoursByProjectId(projectId);
-        BigDecimal quota = row != null && row[0] != null ? (BigDecimal) row[0] : BigDecimal.ZERO;
-        BigDecimal consumed = row != null && row[1] != null ? (BigDecimal) row[1] : BigDecimal.ZERO;
+        List<Object[]> rows = taskRepository.sumHoursByProjectId(projectId);
+        if (rows == null || rows.isEmpty()) {
+            return new AllocatedHours(BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO);
+        }
+        Object[] row = rows.get(0);
+        BigDecimal quota = row != null && row[0] != null ? toBigDecimal(row[0]) : BigDecimal.ZERO;
+        BigDecimal consumed = row != null && row.length > 1 && row[1] != null ? toBigDecimal(row[1]) : BigDecimal.ZERO;
         BigDecimal remaining = quota.subtract(consumed);
         return new AllocatedHours(quota, consumed, remaining);
+    }
+
+    private static BigDecimal toBigDecimal(Object value) {
+        if (value == null) return BigDecimal.ZERO;
+        if (value instanceof BigDecimal) return (BigDecimal) value;
+        if (value instanceof Number) return BigDecimal.valueOf(((Number) value).doubleValue());
+        return new BigDecimal(value.toString());
     }
 
     private TaskSummaryDto buildTaskSummary(Long projectId) {

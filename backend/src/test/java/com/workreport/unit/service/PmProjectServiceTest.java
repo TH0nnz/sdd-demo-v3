@@ -78,7 +78,7 @@ class PmProjectServiceTest {
                                 new Object[]{TaskStatus.CLOSED, 1L}
                         ));
                 when(taskRepository.sumHoursByProjectId(1L))
-                        .thenReturn(new Object[]{new BigDecimal("60.0"), new BigDecimal("15.0")});
+                        .thenReturn(List.of(new Object[]{new BigDecimal("60.0"), new BigDecimal("15.0")}));
 
                 PageResponse<ProjectDashboardResponse> result =
                         pmProjectService.getMyProjects(PM_USER_ID, pageable);
@@ -123,7 +123,7 @@ class PmProjectServiceTest {
                 when(projectRepository.findByPmId(eq(PM_USER_ID), eq(pageable)))
                         .thenReturn(new PageImpl<>(List.of(project), pageable, 1));
                 when(taskRepository.countByProjectIdGroupByStatus(1L)).thenReturn(List.of());
-                when(taskRepository.sumHoursByProjectId(1L)).thenReturn(new Object[]{BigDecimal.ZERO, BigDecimal.ZERO});
+                when(taskRepository.sumHoursByProjectId(1L)).thenReturn(List.of());
 
                 PageResponse<ProjectDashboardResponse> result =
                         pmProjectService.getMyProjects(PM_USER_ID, pageable);
@@ -143,7 +143,7 @@ class PmProjectServiceTest {
                         .thenReturn(List.<Object[]>of(
                                 new Object[]{TaskStatus.IN_PROGRESS, 5L}
                         ));
-                when(taskRepository.sumHoursByProjectId(1L)).thenReturn(new Object[]{new BigDecimal("50.0"), new BigDecimal("10.0")});
+                when(taskRepository.sumHoursByProjectId(1L)).thenReturn(List.of(new Object[]{new BigDecimal("50.0"), new BigDecimal("10.0")}));
 
                 PageResponse<ProjectDashboardResponse> result =
                         pmProjectService.getMyProjects(PM_USER_ID, pageable);
