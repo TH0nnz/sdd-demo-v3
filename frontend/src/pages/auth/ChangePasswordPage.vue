@@ -72,7 +72,6 @@ import { useRouter } from 'vue-router'
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
 import { authApi } from '@/api/auth'
 import { useAuthStore } from '@/stores/auth'
-import { getDefaultRoute } from '@/router'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -129,9 +128,9 @@ async function handleSubmit() {
       currentPassword: form.currentPassword,
       newPassword: form.newPassword,
     })
-    authStore.forcePasswordChange = false
-    ElMessage.success('密碼變更成功')
-    router.push(getDefaultRoute(authStore.roles))
+    authStore.logout()
+    ElMessage.success('密碼變更成功，請使用新密碼重新登入')
+    router.push({ name: 'login' })
   } catch {
     ElMessage.error('密碼變更失敗，請確認目前密碼是否正確')
   } finally {

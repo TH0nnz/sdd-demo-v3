@@ -67,6 +67,7 @@ docker compose up -d --build
 
 ```bash
 ./deploy.sh --host 192.168.10.248 --user infoadmin --password 'your_password'
+./deploy.sh --host 192.168.10.248 --user infoadmin --password 'your_password' --sudo
 ```
 
 也可指定遠端路徑：

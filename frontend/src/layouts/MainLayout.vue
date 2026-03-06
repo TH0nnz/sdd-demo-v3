@@ -8,7 +8,7 @@
         <h2>報工系統</h2>
       </div>
       <el-menu
-        :default-active="route.path"
+        :default-active="activeMenuPath"
         :router="true"
         background-color="#304156"
         text-color="#bfcbd9"
@@ -88,13 +88,14 @@
         </div>
       </el-header>
       <el-main>
-        <router-view />
+        <router-view :key="route.path" />
       </el-main>
     </el-container>
   </el-container>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import NotificationDropdown from '@/components/notification/NotificationDropdown.vue'
@@ -102,6 +103,9 @@ import NotificationDropdown from '@/components/notification/NotificationDropdown
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
+
+// 確保選單高亮與實際路由同步，避免 HR 部門管理／使用者管理切換時錯亂
+const activeMenuPath = computed(() => route.path)
 
 function handleLogout() {
   authStore.logout()
