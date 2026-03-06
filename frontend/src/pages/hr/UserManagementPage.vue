@@ -295,11 +295,35 @@ const handleResetPassword = async (user: User) => {
 }
 
 const copyPassword = async () => {
+  const text = tempPassword.value
   try {
-    await navigator.clipboard.writeText(tempPassword.value)
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text)
+    } else {
+      throw new Error('Clipboard API not available')
+    }
     ElMessage.success('已複製到剪貼簿')
   } catch {
-    ElMessage.error('複製失敗')
+    // Fallback for non-secure context (e.g. HTTP): use execCommand
+    const textarea = document.createElement('textarea')
+    textarea.value = text
+    textarea.style.position = 'fixed'
+    textarea.style.left = '-9999px'
+    textarea.setAttribute('readonly', '')
+    document.body.appendChild(textarea)
+    textarea.select()
+    try {
+      const ok = document.execCommand('copy')
+      if (ok) {
+        ElMessage.success('已複製到剪貼簿')
+      } else {
+        ElMessage.error('複製失敗')
+      }
+    } catch {
+      ElMessage.error('複製失敗')
+    } finally {
+      document.body.removeChild(textarea)
+    }
   }
 }
 
