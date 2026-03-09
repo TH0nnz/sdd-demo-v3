@@ -20,6 +20,7 @@ import com.workreport.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -90,6 +91,19 @@ public class UserService {
                 .orElseThrow(() -> new BusinessRuleException("Department not found",
                         HttpStatus.NOT_FOUND));
 
+        boolean roleChanged = !originalRoles.equals(request.roles());
+        boolean departmentChanged = !user.getDepartment().getId().equals(request.departmentId());
+        if (roleChanged || departmentChanged) {
+            List<TaskStatus> nonTerminal = List.of(TaskStatus.PENDING, TaskStatus.IN_PROGRESS);
+            List<Task> uncompletedTasks = taskRepository.findByAssigneeIdAndStatusIn(userId, nonTerminal);
+            if (!uncompletedTasks.isEmpty()) {
+                throw new BusinessRuleException(
+                        "該人員目前還有尚未完成的Task，無法變更部門或角色",
+                        HttpStatus.CONFLICT
+                );
+            }
+        }
+
         user.setName(request.name());
         user.setDepartment(department);
         user.setRoles(request.roles());
@@ -97,7 +111,7 @@ public class UserService {
         if (!originalRoles.equals(request.roles())) {
             auditLogService.log(
                     AuditActionType.ROLE_CHANGE,
-                    null,
+                    getCurrentUserId(),
                     "User",
                     userId,
                     "角色已變更: " + originalRoles + " -> " + request.roles()
@@ -126,7 +140,7 @@ public class UserService {
 
         auditLogService.log(
                 AuditActionType.ACCOUNT_DEACTIVATE,
-                null,
+                getCurrentUserId(),
                 "User",
                 userId,
                 "帳號已停用: " + user.getEmail()
@@ -143,7 +157,7 @@ public class UserService {
 
         auditLogService.log(
                 AuditActionType.ACCOUNT_ACTIVATE,
-                null,
+                getCurrentUserId(),
                 "User",
                 userId,
                 "帳號已啟用: " + user.getEmail()
@@ -184,6 +198,10 @@ public class UserService {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessRuleException("User not found",
                         HttpStatus.NOT_FOUND));
+    }
+
+    private Long getCurrentUserId() {
+        return (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 
     private String generateTempPassword() {

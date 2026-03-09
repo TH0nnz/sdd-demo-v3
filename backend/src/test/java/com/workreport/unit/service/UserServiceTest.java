@@ -21,6 +21,7 @@ import com.workreport.repository.UserRepository;
 import com.workreport.service.AuditLogService;
 import com.workreport.service.NotificationService;
 import com.workreport.service.UserService;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -33,6 +34,9 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.math.BigDecimal;
@@ -51,6 +55,8 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
+
+    private static final Long TEST_ACTOR_ID = 999L;
 
     @Mock
     private UserRepository userRepository;
@@ -78,6 +84,9 @@ class UserServiceTest {
 
     @BeforeEach
     void setUp() {
+        Authentication auth = new UsernamePasswordAuthenticationToken(TEST_ACTOR_ID, null, List.of());
+        SecurityContextHolder.getContext().setAuthentication(auth);
+
         userService = new UserService(
                 userRepository,
                 departmentRepository,
@@ -110,6 +119,11 @@ class UserServiceTest {
         user.setLockedUntil(null);
         user.setFailedLoginCount(0);
         user.setCreatedAt(LocalDateTime.now());
+    }
+
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
     }
 
     @Nested
@@ -217,6 +231,8 @@ class UserServiceTest {
             );
             when(userRepository.findById(100L)).thenReturn(Optional.of(user));
             when(departmentRepository.findById(1L)).thenReturn(Optional.of(department));
+            when(taskRepository.findByAssigneeIdAndStatusIn(100L, List.of(TaskStatus.PENDING, TaskStatus.IN_PROGRESS)))
+                    .thenReturn(List.of());
             when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
 
             userService.updateUser(100L, request);
@@ -224,7 +240,7 @@ class UserServiceTest {
             ArgumentCaptor<String> messageCaptor = ArgumentCaptor.forClass(String.class);
             verify(auditLogService).log(
                     eq(AuditActionType.ROLE_CHANGE),
-                    eq(null),
+                    eq(TEST_ACTOR_ID),
                     eq("User"),
                     eq(100L),
                     messageCaptor.capture()
@@ -269,6 +285,8 @@ class UserServiceTest {
             );
             when(userRepository.findById(100L)).thenReturn(Optional.of(user));
             when(departmentRepository.findById(2L)).thenReturn(Optional.of(newDept));
+            when(taskRepository.findByAssigneeIdAndStatusIn(100L, List.of(TaskStatus.PENDING, TaskStatus.IN_PROGRESS)))
+                    .thenReturn(List.of());
             when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
 
             UserResponse response = userService.updateUser(100L, request);
@@ -308,6 +326,35 @@ class UserServiceTest {
                     .satisfies(ex -> assertThat(((BusinessRuleException) ex).getStatus())
                             .isEqualTo(HttpStatus.NOT_FOUND));
         }
+
+        @Test
+        @DisplayName("有未完成 Task 時變更部門或角色拋出 CONFLICT")
+        void updateUser_hasUncompletedTasks_roleOrDeptChange_throwsConflict() {
+            Task uncompletedTask = new Task();
+            uncompletedTask.setId(1L);
+            uncompletedTask.setStatus(TaskStatus.IN_PROGRESS);
+            UpdateUserRequest request = new UpdateUserRequest(
+                    "Updated Name",
+                    2L,
+                    Set.of(Role.PM)
+            );
+            Department newDept = new Department();
+            newDept.setId(2L);
+            newDept.setName("HR");
+            when(userRepository.findById(100L)).thenReturn(Optional.of(user));
+            when(departmentRepository.findById(2L)).thenReturn(Optional.of(newDept));
+            when(taskRepository.findByAssigneeIdAndStatusIn(100L, List.of(TaskStatus.PENDING, TaskStatus.IN_PROGRESS)))
+                    .thenReturn(List.of(uncompletedTask));
+
+            assertThatThrownBy(() -> userService.updateUser(100L, request))
+                    .isInstanceOf(BusinessRuleException.class)
+                    .satisfies(ex -> {
+                        BusinessRuleException bre = (BusinessRuleException) ex;
+                        assertThat(bre.getStatus()).isEqualTo(HttpStatus.CONFLICT);
+                        assertThat(bre.getMessage()).isEqualTo("該人員目前還有尚未完成的Task，無法變更部門或角色");
+                    });
+            verify(userRepository, never()).save(any(User.class));
+        }
     }
 
     @Nested
@@ -332,7 +379,7 @@ class UserServiceTest {
 
             verify(auditLogService).log(
                     eq(AuditActionType.ACCOUNT_DEACTIVATE),
-                    eq(null),
+                    eq(TEST_ACTOR_ID),
                     eq("User"),
                     eq(100L),
                     org.mockito.ArgumentMatchers.contains("帳號已停用")
@@ -404,7 +451,7 @@ class UserServiceTest {
 
             verify(auditLogService).log(
                     eq(AuditActionType.ACCOUNT_ACTIVATE),
-                    eq(null),
+                    eq(TEST_ACTOR_ID),
                     eq("User"),
                     eq(100L),
                     org.mockito.ArgumentMatchers.contains("帳號已啟用")
