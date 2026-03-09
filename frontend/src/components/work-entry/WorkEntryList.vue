@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Edit } from '@element-plus/icons-vue'
 import type { WorkEntry } from '@/types'
 import { workEntryApi } from '@/api/work-entries'
 
-defineProps<{
+const props = defineProps<{
   entries: WorkEntry[]
   loading: boolean
 }>()
@@ -16,6 +16,16 @@ const editDialogVisible = ref(false)
 const editingEntry = ref<WorkEntry | null>(null)
 const editHours = ref(0)
 const saving = ref(false)
+
+const maxEditHours = computed(() => {
+  const entry = editingEntry.value
+  if (!entry) return 24
+  const sameDayTotal = props.entries
+    .filter((e) => e.workDate === entry.workDate)
+    .reduce((sum, e) => sum + e.hours, 0)
+  const othersTotal = sameDayTotal - entry.hours
+  return Math.min(24, 24 - othersTotal)
+})
 
 function openEditDialog(entry: WorkEntry) {
   editingEntry.value = entry
@@ -35,7 +45,14 @@ async function handleSaveEdit() {
     editDialogVisible.value = false
     emit('updated')
   } catch (e: any) {
-    ElMessage.error(e.response?.data?.message || '更新工時失敗')
+    const msg = e.response?.data?.message || ''
+    let displayMsg = msg || '更新工時失敗'
+    if (msg.includes('COMPLETED') || msg.includes('CLOSED')) {
+      displayMsg = '此任務已完成，無法修改工時'
+    } else if (msg.includes('24') || msg.includes('Daily total')) {
+      displayMsg = '當日總工時不得超過 24 小時'
+    }
+    ElMessage.error(displayMsg)
   } finally {
     saving.value = false
   }
@@ -120,8 +137,14 @@ function statusType(editable: boolean) {
         v-model="editHours"
         :step="0.5"
         :min="0.5"
-        :max="24"
+        :max="maxEditHours"
       />
+      <div
+        v-if="editingEntry"
+        class="daily-limit-hint"
+      >
+        當日上限 24 小時，目前可填最大 {{ maxEditHours }} 小時
+      </div>
     </el-form-item>
     <template #footer>
       <el-button @click="editDialogVisible = false">
@@ -137,3 +160,11 @@ function statusType(editable: boolean) {
     </template>
   </el-dialog>
 </template>
+
+<style scoped>
+.daily-limit-hint {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+}
+</style>

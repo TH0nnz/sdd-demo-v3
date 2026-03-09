@@ -61,6 +61,11 @@ public class ProjectController {
         return ResponseEntity.ok(projectService.closeProject(id));
     }
 
+    @PostMapping("/{id}/activate")
+    public ResponseEntity<ProjectResponse> activateProject(@PathVariable Long id) {
+        return ResponseEntity.ok(projectService.activateProject(id));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteProject(@PathVariable Long id) {
         projectService.deleteProject(id);

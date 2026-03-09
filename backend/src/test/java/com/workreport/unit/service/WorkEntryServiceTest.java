@@ -138,7 +138,7 @@ class WorkEntryServiceTest {
 
             BusinessRuleException ex = assertThrows(BusinessRuleException.class,
                     () -> workEntryService.createWorkEntry(USER_ID, request));
-            assertTrue(ex.getMessage().contains("COMPLETED"));
+            assertTrue(ex.getMessage().contains("此任務已完成"));
             verify(workEntryRepository, never()).save(any());
         }
 
@@ -240,6 +240,23 @@ class WorkEntryServiceTest {
             BusinessRuleException ex = assertThrows(BusinessRuleException.class,
                     () -> workEntryService.createWorkEntry(USER_ID, request));
             assertTrue(ex.getMessage().contains("budget"));
+            verify(workEntryRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("工時超過剩餘時拋出 BusinessRuleException 並顯示剩餘時數")
+        void whenHoursExceedRemaining_throwsBusinessRuleExceptionWithRemaining() {
+            task.setConsumedHours(new BigDecimal("8.0"));
+            when(taskRepository.findById(TASK_ID)).thenReturn(Optional.of(task));
+            when(workEntryRepository.sumHoursByUserIdAndWorkDate(USER_ID, editableWorkDate()))
+                    .thenReturn(BigDecimal.ZERO);
+            CreateWorkEntryRequest request = new CreateWorkEntryRequest(
+                    TASK_ID, editableWorkDate(), new BigDecimal("3.0"));
+
+            BusinessRuleException ex = assertThrows(BusinessRuleException.class,
+                    () -> workEntryService.createWorkEntry(USER_ID, request));
+            assertTrue(ex.getMessage().contains("工時只剩餘"));
+            assertTrue(ex.getMessage().contains("2"));
             verify(workEntryRepository, never()).save(any());
         }
 
@@ -410,7 +427,7 @@ class WorkEntryServiceTest {
             UpdateWorkEntryRequest request = new UpdateWorkEntryRequest(new BigDecimal("3.0"));
             BusinessRuleException ex = assertThrows(BusinessRuleException.class,
                     () -> workEntryService.updateWorkEntry(USER_ID, ENTRY_ID, request));
-            assertTrue(ex.getMessage().contains("COMPLETED"));
+            assertTrue(ex.getMessage().contains("此任務已完成"));
         }
 
         @Test
@@ -461,6 +478,23 @@ class WorkEntryServiceTest {
             BusinessRuleException ex = assertThrows(BusinessRuleException.class,
                     () -> workEntryService.updateWorkEntry(USER_ID, ENTRY_ID, request));
             assertTrue(ex.getMessage().contains("24"));
+        }
+
+        @Test
+        @DisplayName("更新工時超過剩餘時拋出 BusinessRuleException 並顯示剩餘時數")
+        void whenUpdateHoursExceedRemaining_throwsBusinessRuleExceptionWithRemaining() {
+            task.setConsumedHours(new BigDecimal("8.0"));
+            entry.setHours(new BigDecimal("2.0"));
+            when(workEntryRepository.findById(ENTRY_ID)).thenReturn(Optional.of(entry));
+            when(workEntryRepository.sumHoursByUserIdAndWorkDate(USER_ID, editableWorkDate))
+                    .thenReturn(new BigDecimal("2.0"));
+
+            UpdateWorkEntryRequest request = new UpdateWorkEntryRequest(new BigDecimal("5.0"));
+
+            BusinessRuleException ex = assertThrows(BusinessRuleException.class,
+                    () -> workEntryService.updateWorkEntry(USER_ID, ENTRY_ID, request));
+            assertTrue(ex.getMessage().contains("工時只剩餘"));
+            assertTrue(ex.getMessage().contains("2"));
         }
 
         @Test

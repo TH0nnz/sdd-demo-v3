@@ -19,6 +19,7 @@ import com.workreport.repository.UserRepository;
 import com.workreport.repository.WorkEntryRepository;
 import com.workreport.service.AuditLogService;
 import com.workreport.service.ProjectService;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -28,6 +29,9 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -73,10 +77,13 @@ class ProjectServiceTest {
     private static final Long PROJECT_ID = 1L;
     private static final Long PM_ID = 10L;
     private static final Long DEPT_ID = 20L;
+    private static final Long ADMIN_ID = 99L;
     private static final LocalDateTime NOW = LocalDateTime.of(2025, 3, 1, 12, 0);
 
     @BeforeEach
     void setUp() {
+        Authentication auth = new UsernamePasswordAuthenticationToken(ADMIN_ID, null, List.of());
+        SecurityContextHolder.getContext().setAuthentication(auth);
         pmUser = new User();
         pmUser.setId(PM_ID);
         pmUser.setName("PM User");
@@ -99,6 +106,11 @@ class ProjectServiceTest {
         project.setConsumedHours(BigDecimal.ZERO);
         project.setPm(pmUser);
         project.setDepartment(department);
+    }
+
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
         project.setCreatedAt(NOW);
         project.setUpdatedAt(NOW);
         project.setClosedAt(null);
@@ -334,7 +346,7 @@ class ProjectServiceTest {
 
             verify(auditLogService).log(
                     eq(AuditActionType.PROJECT_CLOSED),
-                    eq(null),
+                    eq(ADMIN_ID),
                     eq("Project"),
                     eq(PROJECT_ID),
                     org.mockito.ArgumentMatchers.contains("Project closed:")

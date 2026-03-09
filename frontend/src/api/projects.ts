@@ -17,6 +17,9 @@ export const projectsApi = {
   closeProject(id: number) {
     return http.post<Project>(`/projects/${id}/close`)
   },
+  activateProject(id: number) {
+    return http.post<Project>(`/projects/${id}/activate`)
+  },
   deleteProject(id: number) {
     return http.delete(`/projects/${id}`)
   },

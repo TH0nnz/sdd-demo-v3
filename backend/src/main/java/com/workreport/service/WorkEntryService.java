@@ -82,6 +82,10 @@ public class WorkEntryService {
         if (remaining.compareTo(BigDecimal.ZERO) <= 0) {
             throw new BusinessRuleException("Task budget is exhausted");
         }
+        // Validate hours do not exceed remaining (avoid negative remaining)
+        if (request.hours().compareTo(remaining) > 0) {
+            throw new BusinessRuleException("工時只剩餘 " + remaining.stripTrailingZeros().toPlainString() + " 小時");
+        }
 
         // Create WorkEntry
         User user = userRepository.findById(userId)
@@ -132,7 +136,7 @@ public class WorkEntryService {
 
         // Validate task not terminal
         if (task.getStatus() == TaskStatus.COMPLETED || task.getStatus() == TaskStatus.CLOSED) {
-            throw new BusinessRuleException("Cannot modify hours for a " + task.getStatus() + " task");
+            throw new BusinessRuleException("此任務已完成，無法修改工時");
         }
 
         // Validate workDate still in editable range
@@ -149,7 +153,13 @@ public class WorkEntryService {
         BigDecimal diff = request.hours().subtract(entry.getHours());
         BigDecimal dailyTotal = workEntryRepository.sumHoursByUserIdAndWorkDate(userId, entry.getWorkDate());
         if (dailyTotal.add(diff).compareTo(DAILY_LIMIT) > 0) {
-            throw new BusinessRuleException("Daily total hours cannot exceed 24");
+            throw new BusinessRuleException("當日總工時不得超過 24 小時");
+        }
+
+        // Validate update would not cause negative remaining
+        BigDecimal remaining = task.getBudgetHours().subtract(task.getConsumedHours());
+        if (diff.compareTo(BigDecimal.ZERO) > 0 && diff.compareTo(remaining) > 0) {
+            throw new BusinessRuleException("工時只剩餘 " + remaining.stripTrailingZeros().toPlainString() + " 小時");
         }
 
         // Update entry hours and task consumed hours
@@ -179,6 +189,8 @@ public class WorkEntryService {
         if (remaining.compareTo(BigDecimal.ZERO) <= 0) {
             warning = "Task budget exhausted";
         }
+        boolean dateEditable = WorkDayUtils.isEditable(entry.getWorkDate(), today);
+        boolean taskEditable = task.getStatus() != TaskStatus.COMPLETED && task.getStatus() != TaskStatus.CLOSED;
         return new WorkEntryResponse(
                 entry.getId(),
                 task.getId(),
@@ -186,7 +198,7 @@ public class WorkEntryService {
                 task.getProject().getName(),
                 entry.getWorkDate(),
                 entry.getHours(),
-                WorkDayUtils.isEditable(entry.getWorkDate(), today),
+                dateEditable && taskEditable,
                 remaining,
                 warning,
                 entry.getCreatedAt(),

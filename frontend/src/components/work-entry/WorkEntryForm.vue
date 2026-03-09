@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import type { Task, CreateWorkEntryRequest } from '@/types'
 import { myTasksApi } from '@/api/my-tasks'
@@ -19,10 +19,38 @@ const form = ref<CreateWorkEntryRequest>({
 
 const formRef = ref()
 
+const selectedTask = computed(() =>
+  tasks.value.find((t) => t.id === form.value.taskId)
+)
+
+const maxHours = computed(() => {
+  const cap = 24
+  const remaining = selectedTask.value?.remainingHours
+  if (remaining == null || remaining <= 0) return cap
+  return Math.min(cap, remaining)
+})
+
 const rules = {
   taskId: [{ required: true, message: '請選擇任務', trigger: 'change' }],
   workDate: [{ required: true, message: '請選擇日期', trigger: 'change' }],
-  hours: [{ required: true, message: '請輸入工時', trigger: 'blur' }],
+  hours: [
+    { required: true, message: '請輸入工時', trigger: 'blur' },
+    {
+      validator: (_rule: unknown, value: number, callback: (err?: Error) => void) => {
+        const task = selectedTask.value
+        if (!task || value <= 0) {
+          callback()
+          return
+        }
+        if (value > task.remainingHours) {
+          callback(new Error(`工時只剩餘 ${task.remainingHours} 小時`))
+        } else {
+          callback()
+        }
+      },
+      trigger: 'blur',
+    },
+  ],
 }
 
 function getRecentWorkDays(): Date[] {
@@ -55,7 +83,12 @@ async function loadTasks() {
   loadingTasks.value = true
   try {
     const { data } = await myTasksApi.getMyTasks()
-    tasks.value = data.content.filter(t => t.status !== 'COMPLETED' && t.status !== 'CLOSED')
+    tasks.value = data.content.filter(
+      (t) =>
+        t.status !== 'COMPLETED' &&
+        t.status !== 'CLOSED' &&
+        (t.remainingHours ?? 0) > 0
+    )
   } catch {
     ElMessage.error('載入任務清單失敗')
   } finally {
@@ -84,6 +117,15 @@ async function handleSubmit() {
   }
 }
 
+watch(
+  () => form.value.taskId,
+  () => {
+    if (form.value.hours > maxHours.value) {
+      form.value.hours = maxHours.value
+    }
+  }
+)
+
 onMounted(loadTasks)
 </script>
 
@@ -109,10 +151,16 @@ onMounted(loadTasks)
         <el-option
           v-for="task in tasks"
           :key="task.id"
-          :label="`${task.projectName} - ${task.name}`"
+          :label="`${task.projectName} - ${task.name} (剩餘 ${task.remainingHours} 小時)`"
           :value="task.id"
         />
       </el-select>
+      <div
+        v-if="selectedTask"
+        class="remaining-hint"
+      >
+        此任務剩餘工時：{{ selectedTask.remainingHours }} 小時
+      </div>
     </el-form-item>
     <el-form-item
       label="日期"
@@ -135,7 +183,7 @@ onMounted(loadTasks)
         v-model="form.hours"
         :step="0.5"
         :min="0.5"
-        :max="24"
+        :max="maxHours"
       />
     </el-form-item>
     <el-form-item>
@@ -149,3 +197,11 @@ onMounted(loadTasks)
     </el-form-item>
   </el-form>
 </template>
+
+<style scoped>
+.remaining-hint {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+}
+</style>

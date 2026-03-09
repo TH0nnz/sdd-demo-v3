@@ -18,6 +18,7 @@ import com.workreport.repository.DepartmentRepository;
 import com.workreport.repository.TaskRepository;
 import com.workreport.repository.UserRepository;
 import com.workreport.repository.WorkEntryRepository;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -121,8 +122,28 @@ public class ProjectService {
         project.setClosedAt(LocalDateTime.now());
         project = projectRepository.save(project);
 
-        auditLogService.log(AuditActionType.PROJECT_CLOSED, null, "Project", projectId,
+        Long actorId = getCurrentUserId();
+        auditLogService.log(AuditActionType.PROJECT_CLOSED, actorId, "Project", projectId,
                 "Project closed: " + project.getName());
+
+        return toResponse(project);
+    }
+
+    public ProjectResponse activateProject(Long projectId) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found: " + projectId));
+
+        if (project.getStatus() == ProjectStatus.ACTIVE) {
+            throw new BusinessRuleException("專案已為啟用狀態");
+        }
+
+        project.setStatus(ProjectStatus.ACTIVE);
+        project.setClosedAt(null);
+        project = projectRepository.save(project);
+
+        Long actorId = getCurrentUserId();
+        auditLogService.log(AuditActionType.PROJECT_ACTIVATED, actorId, "Project", projectId,
+                "Project activated: " + project.getName());
 
         return toResponse(project);
     }
@@ -149,6 +170,10 @@ public class ProjectService {
         Project project = projectRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Project not found: " + id));
         return toResponse(project);
+    }
+
+    private Long getCurrentUserId() {
+        return (Long) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 
     private ProjectResponse toResponse(Project project) {

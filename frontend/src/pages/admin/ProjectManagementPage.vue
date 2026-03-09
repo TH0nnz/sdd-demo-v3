@@ -73,7 +73,7 @@
       />
       <el-table-column
         label="操作"
-        width="260"
+        width="320"
         fixed="right"
       >
         <template #default="{ row }">
@@ -85,12 +85,20 @@
             編輯
           </el-button>
           <el-button
+            v-if="row.status === 'ACTIVE'"
             size="small"
             type="warning"
-            :disabled="row.status === 'CLOSED'"
             @click="handleClose(row)"
           >
             關閉
+          </el-button>
+          <el-button
+            v-if="row.status === 'CLOSED'"
+            size="small"
+            type="success"
+            @click="handleActivate(row)"
+          >
+            啟用
           </el-button>
           <el-button
             size="small"
@@ -213,6 +221,23 @@ const handleClose = async (project: Project) => {
   } catch (err: any) {
     if (err !== 'cancel') {
       ElMessage.error(err.response?.data?.message || '關閉失敗')
+    }
+  }
+}
+
+const handleActivate = async (project: Project) => {
+  try {
+    await ElMessageBox.confirm(`確定要啟用專案「${project.name}」嗎？`, '確認啟用', {
+      confirmButtonText: '確定',
+      cancelButtonText: '取消',
+      type: 'info',
+    })
+    await projectsApi.activateProject(project.id)
+    ElMessage.success('專案已啟用')
+    fetchProjects()
+  } catch (err: any) {
+    if (err !== 'cancel') {
+      ElMessage.error(err.response?.data?.message || '啟用失敗')
     }
   }
 }
