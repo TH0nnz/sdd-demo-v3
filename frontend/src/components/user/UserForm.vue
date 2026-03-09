@@ -44,18 +44,17 @@
     </el-form-item>
     <el-form-item
       label="角色"
-      prop="roles"
+      prop="role"
     >
-      <el-checkbox-group v-model="form.roles">
-        <el-checkbox
+      <el-radio-group v-model="form.role">
+        <el-radio
           v-for="role in allRoles"
           :key="role"
-          :label="role"
           :value="role"
         >
           {{ roleLabel(role) }}
-        </el-checkbox>
-      </el-checkbox-group>
+        </el-radio>
+      </el-radio-group>
     </el-form-item>
   </el-form>
 </template>
@@ -100,14 +99,14 @@ const form = reactive({
   email: props.initialData?.email || '',
   name: props.initialData?.name || '',
   departmentId: props.initialData?.departmentId || (null as number | null),
-  roles: [...(props.initialData?.roles || [])] as Role[],
+  role: (props.initialData?.roles?.[0] || null) as Role | null,
 })
 
 const rules: FormRules = {
   email: [{ required: true, message: '請輸入Email', trigger: 'blur' }],
   name: [{ required: true, message: '請輸入姓名', trigger: 'blur' }],
   departmentId: [{ required: true, message: '請選擇部門', trigger: 'change' }],
-  roles: [{ required: true, message: '請選擇角色', trigger: 'change', type: 'array', min: 1 }],
+  role: [{ required: true, message: '請選擇角色', trigger: 'change' }],
 }
 
 const formRef = ref<FormInstance>()
@@ -121,7 +120,7 @@ const getData = () => ({
   email: form.email,
   name: form.name,
   departmentId: form.departmentId!,
-  roles: form.roles,
+  roles: form.role ? [form.role] : [],
 })
 
 watch(
@@ -131,7 +130,7 @@ watch(
       form.email = val.email || ''
       form.name = val.name || ''
       form.departmentId = val.departmentId || null
-      form.roles = [...(val.roles || [])]
+      form.role = val.roles?.[0] || null
       isEdit.value = !!val.email
     }
   },
