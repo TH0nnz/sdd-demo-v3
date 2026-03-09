@@ -159,7 +159,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, nextTick } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { User, Role } from '@/types'
 import { usersApi } from '@/api/users'
@@ -276,8 +276,13 @@ const toggleActive = async (user: User) => {
     }
     ElMessage.success(`使用者已${action}`)
     fetchUsers()
-  } catch {
-    // cancelled
+  } catch (err: any) {
+    if (err?.response) {
+      const msg = err.response?.data?.message ?? err.response?.data?.error ?? '操作失敗'
+      await nextTick()
+      ElMessage.error(msg)
+    }
+    // 使用者取消確認時不顯示訊息
   }
 }
 
@@ -289,8 +294,12 @@ const handleResetPassword = async (user: User) => {
     const res = await usersApi.resetPassword(user.id)
     tempPassword.value = res.data.temporaryPassword
     tempPasswordVisible.value = true
-  } catch {
-    // cancelled
+  } catch (err: any) {
+    if (err?.response) {
+      const msg = err.response?.data?.message ?? err.response?.data?.error ?? '重設密碼失敗'
+      await nextTick()
+      ElMessage.error(msg)
+    }
   }
 }
 

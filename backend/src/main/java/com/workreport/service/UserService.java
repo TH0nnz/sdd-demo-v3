@@ -122,6 +122,10 @@ public class UserService {
     }
 
     public UserResponse disableUser(Long userId) {
+        Long currentUserId = getCurrentUserId();
+        if (currentUserId.equals(userId)) {
+            throw new BusinessRuleException("無法停用自己", HttpStatus.FORBIDDEN);
+        }
         User user = findUserById(userId);
         user.setActive(false);
 

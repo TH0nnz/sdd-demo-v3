@@ -362,6 +362,20 @@ class UserServiceTest {
     class DisableUser {
 
         @Test
+        @DisplayName("停用自己時拋出 FORBIDDEN")
+        void disableUser_self_throwsForbidden() {
+            assertThatThrownBy(() -> userService.disableUser(TEST_ACTOR_ID))
+                    .isInstanceOf(BusinessRuleException.class)
+                    .satisfies(ex -> {
+                        BusinessRuleException bre = (BusinessRuleException) ex;
+                        assertThat(bre.getStatus()).isEqualTo(HttpStatus.FORBIDDEN);
+                        assertThat(bre.getMessage()).isEqualTo("無法停用自己");
+                    });
+            verify(userRepository, never()).findById(any());
+            verify(userRepository, never()).save(any(User.class));
+        }
+
+        @Test
         @DisplayName("成功時 setActive(false)、auditLog ACCOUNT_DEACTIVATE")
         void disableUser_success_setsActiveFalseAndLogs() {
             when(userRepository.findById(100L)).thenReturn(Optional.of(user));
