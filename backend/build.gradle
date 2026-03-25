@@ -34,6 +34,9 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
 
+    // AspectJ weaver enables @Aspect-based AOP (version managed by Spring Boot BOM)
+    implementation 'org.aspectj:aspectjweaver'
+
     // Jackson
     implementation 'com.fasterxml.jackson.core:jackson-databind'
 
@@ -81,6 +84,7 @@ def jacocoExcludes = [
     'com/workreport/config/**',
     'com/workreport/security/**',
     'com/workreport/repository/**',
+    'com/workreport/annotation/**',
     'com/workreport/dto/department/**',
     'com/workreport/dto/task/**',
     'com/workreport/dto/common/**',
