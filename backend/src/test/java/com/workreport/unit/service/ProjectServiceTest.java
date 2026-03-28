@@ -225,7 +225,8 @@ class ProjectServiceTest {
             UpdateProjectRequest request = new UpdateProjectRequest(
                     "Updated Name",
                     BigDecimal.valueOf(120),
-                    PM_ID
+                    PM_ID,
+                    DEPT_ID
             );
             when(projectRepository.findById(PROJECT_ID)).thenReturn(Optional.of(project));
             when(userRepository.findById(PM_ID)).thenReturn(Optional.of(pmUser));
@@ -252,7 +253,8 @@ class ProjectServiceTest {
             UpdateProjectRequest request = new UpdateProjectRequest(
                     "Name",
                     BigDecimal.ONE,
-                    PM_ID
+                    PM_ID,
+                    DEPT_ID
             );
             when(projectRepository.findById(999L)).thenReturn(Optional.empty());
 
@@ -270,7 +272,8 @@ class ProjectServiceTest {
             UpdateProjectRequest request = new UpdateProjectRequest(
                     "Name",
                     BigDecimal.ONE,
-                    PM_ID
+                    PM_ID,
+                    DEPT_ID
             );
             when(projectRepository.findById(PROJECT_ID)).thenReturn(Optional.of(project));
 
@@ -287,7 +290,8 @@ class ProjectServiceTest {
             UpdateProjectRequest request = new UpdateProjectRequest(
                     "Name",
                     BigDecimal.ONE,
-                    999L
+                    999L,
+                    DEPT_ID
             );
             when(projectRepository.findById(PROJECT_ID)).thenReturn(Optional.of(project));
             when(userRepository.findById(999L)).thenReturn(Optional.empty());
@@ -304,7 +308,8 @@ class ProjectServiceTest {
             UpdateProjectRequest request = new UpdateProjectRequest(
                     "Name",
                     BigDecimal.ONE,
-                    nonPmUser.getId()
+                    nonPmUser.getId(),
+                    DEPT_ID
             );
             when(projectRepository.findById(PROJECT_ID)).thenReturn(Optional.of(project));
             when(userRepository.findById(nonPmUser.getId())).thenReturn(Optional.of(nonPmUser));

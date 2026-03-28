@@ -1,15 +1,19 @@
 # sdd-demo-v3 — 報工系統示範專案
 
-> **Work-Reporting System Demo** — Vue 3 前端 + Spring Boot 後端 + PostgreSQL
+> **Work-Reporting System Demo** — Vue 3 + TypeScript 前端 ｜ Spring Boot 4 後端 ｜ PostgreSQL 18
 
 ---
 
 ## 目錄
 
 - [專案說明](#專案說明)
+- [技術堆疊](#技術堆疊)
 - [快速啟動](#快速啟動)
-- [部署到 linux server（Docker Compose）](#部署到-linux-server docker-compose)
-- [Auto-Fix 工作流程（`/fix` 指令）](#auto-fix-工作流程fix-指令)
+- [本地開發](#本地開發)
+- [測試帳號](#測試帳號)
+- [建構與測試指令](#建構與測試指令)
+- [部署到遠端主機](#部署到遠端主機)
+- [Auto-Fix 工作流程](#auto-fix-工作流程fix-指令)
 - [Speckit 斜線指令](#speckit-斜線指令)
 - [目錄結構](#目錄結構)
 
@@ -17,17 +21,50 @@
 
 ## 專案說明
 
-本專案示範一套五角色**報工系統**：
+本專案示範一套五角色**報工系統**，涵蓋從專案建立、任務拆分、工時填報到進度監控的完整生命週期：
 
 | 角色 | 主要職責 |
-|------|---------|
-| 管理層 | 建立／修改／關閉專案、審核時數增補申請 |
+|------|-------|
+| 管理層 (Admin) | 建立／修改／關閉專案、設定時數預算、審核時數增補申請 |
 | PM | 拆分並指派 Task、監控進度、向管理層申請時數 |
-| 部門主管 | 查看部門工時與 Task 狀態 |
-| 執行人員 | 填報工時、管理個人 Task 狀態 |
-| HR | 新增人員、指派角色 |
+| 部門主管 (Dept. Manager) | 唯讀查看部門成員工時與 Task 狀態 |
+| 執行人員 (Executor) | 填報工時（最小單位 0.5h）、管理個人 Task 狀態 |
+| HR | 新增使用者、指派角色、停用帳號 |
 
-詳細功能規格請參閱 [`specs/002-work-reporting-system/spec.md`](specs/002-work-reporting-system/spec.md)。
+詳細功能規格請參閱 [specs/002-work-reporting-system/spec.md](specs/002-work-reporting-system/spec.md)。
+
+---
+
+## 技術堆疊
+
+### 後端
+
+| 技術 | 版本 | 說明 |
+|------|------|------|
+| Java | 24 | 執行環境 |
+| Spring Boot | 4.0.2 | 應用程式框架 |
+| Spring Security + JWT | — | 身份驗證與授權（jjwt 0.12.6） |
+| Spring Data JPA + Hibernate | — | ORM 資料存取層 |
+| Flyway | — | 資料庫版本控制與遷移 |
+| PostgreSQL | 18 | 關聯式資料庫 |
+| Gradle | 8.x | 建構工具（含 Wrapper） |
+| JaCoCo | — | 測試覆蓋率（門櫛 ≥ 80%） |
+| Checkstyle | — | 靜態程式碼分析 |
+| Testcontainers | 1.21.1 | 整合測試用容器 |
+
+### 前端
+
+| 技術 | 版本 | 說明 |
+|------|------|------|
+| Vue | 3.5 | UI 框架 |
+| TypeScript | 5.7 | 型別安全 |
+| Vite | 6.1 | 建構工具 |
+| Pinia | 3.0 | 狀態管理 |
+| Vue Router | 4.5 | 路由管理 |
+| Element Plus | 2.9 | UI 元件函式庫 |
+| Axios | 1.7 | HTTP 客戶端 |
+| Vitest | 3.0 | 單元測試 |
+| Playwright | 1.50 | E2E 測試 |
 
 ---
 
@@ -45,245 +82,45 @@ docker compose up -d --build
 | 後端 API | <http://localhost:8089> |
 | PostgreSQL | `localhost:5454` |
 
-### 本地開發模式
-
-完整的本地開發步驟（含測試帳號、環境變數說明）請參閱：
-
-👉 [`specs/002-work-reporting-system/quickstart.md`](specs/002-work-reporting-system/quickstart.md)
+Flyway 會自動建立資料庫結構並植入測試帳號。
 
 ---
 
-## 部署到 192.168.10.248（Docker Compose）
+## 本地開發
 
-目標：將專案同步到遠端主機 `user@ip:/home/infoadmin/sdd-demo-v3`，並在遠端以 `docker compose` 啟動。
+### 前置需求
 
-### 一鍵部署腳本
-
-```bash
-./deploy.sh
-```
-
-執行時帶入連線參數（你要的做法）：
-
-```bash
-./deploy.sh --host 192.168.10.248 --user infoadmin --password 'your_password'
-./deploy.sh --host 192.168.10.248 --user infoadmin --password 'your_password' --sudo
-```
-
-也可指定遠端路徑：
-
-```bash
-./deploy.sh --host 192.168.10.248 --user infoadmin --password 'your_password' --remote-path /home/infoadmin/sdd-demo-v3
-```
-
-若不需要重新建構映像：
-
-```bash
-./deploy.sh --host 192.168.10.248 --user infoadmin --password 'your_password' --no-build
-```
-
-### 1. 本機同步專案到遠端
-
-在專案根目錄執行：
-
-```bash
-rsync -avz --delete \
-  --exclude '.git' \
-  --exclude 'backend/build' \
-  --exclude 'backend/.gradle' \
-  --exclude 'frontend/node_modules' \
-  --exclude 'frontend/dist' \
-  ./ user@ip:/home/infoadmin/sdd-demo-v3/
-```
-
-### 2. 連線遠端並啟動容器
-
-```bash
-ssh user@ip
-cd /home/infoadmin/sdd-demo-v3
-docker compose up -d --build
-```
-
-### 3. 驗證服務狀態
-
-```bash
-docker compose ps
-docker compose logs -f --tail=200
-```
-
-### 4. 重新部署（後續更新）
-
-每次更新程式碼後，重複步驟 1 和步驟 2 即可。
-
-### 5. 常用維運指令
-
-```bash
-# 停止服務
-docker compose down
-
-# 重啟單一服務（範例：backend）
-docker compose up -d --build backend
-
-# 清理未使用影像
-docker image prune -f
-```
-
-### 6. 防火牆與連接埠
-
-此專案預設映射：
-
-- 前端：`80`
-- 後端：`8089`
-- PostgreSQL：`5454`
-
-若要讓外部可連線，請確認遠端主機防火牆已放行上述連接埠。
-
----
-
-## Auto-Fix 工作流程（`/fix` 指令）
-
-當你在任意 **Issue** 留言 `/fix`，GitHub Actions 會自動：
-
-1. 建立分支 `autofix/issue-<編號>`
-2. 在 `.autofix/` 目錄產生包含 Issue 完整上下文的 Markdown 草稿
-3. 開啟一個 Pull Request 供你審查並補充實際修復內容
-
-### 使用方式
-
-在 Issue 的留言欄輸入下列任一指令，然後送出：
-
-```
-/fix
-```
-
-附帶分類標籤（可選）：
-
-```
-/fix ui
-/fix flow
-/fix logic
-```
-
-> **注意**：只有帳號 **TH0nnz** 的留言才會觸發此工作流程；留言必須在 Issue 上（PR 留言不會觸發）。
-> 允許的帳號設定於 [`.github/workflows/auto-fix.yml`](.github/workflows/auto-fix.yml)（`github.event.comment.user.login == 'TH0nnz'`）。
-
-### 流程範例
-
-```
-Issue #42: 按鈕樣式跑版
-
-留言：/fix ui
-  └─▶ Actions 執行
-       ├─ 建立分支 autofix/issue-42
-       ├─ 寫入 .autofix/issue-42.md（含 Issue 標題、內文、留言）
-       └─ 開啟 PR: "autofix [ui]: issue #42 – 按鈕樣式跑版"
-```
-
-產生的 PR 會列出 Issue 的完整資訊，方便你（或 Copilot）直接在分支上進行修復。
-
----
-
-## Speckit 斜線指令
-
-本專案整合了 **speckit** 設計工件工作流程。在支援 GitHub Copilot Chat 的編輯器中，可使用下列指令：
-
-| 指令 | 說明 |
+| 工具 | 版本 |
 |------|------|
-| `/speckit.specify` | 根據需求描述產生 `spec.md` |
-| `/speckit.plan` | 根據 spec.md 產生實作計劃 `plan.md` |
-| `/speckit.tasks` | 根據 plan.md 產生可執行任務清單 `tasks.md` |
-| `/speckit.implement` | 依序執行 tasks.md 中的任務 |
-| `/speckit.analyze` | 跨工件一致性分析（需 spec/plan/tasks 都存在） |
-| `/speckit.clarify` | 對規格中模糊之處提出澄清問題 |
-| `/speckit.checklist` | 產生功能驗收清單 |
-| `/speckit.taskstoissues` | 將 tasks.md 轉換為 GitHub Issues |
-| `/speckit.constitution` | 建立或更新專案治理憲章 |
+| JDK | 24（成24 LTS） |
+| Node.js | 20 LTS+ |
+| pnpm | 9.x |
+| Docker & Docker Compose | 最新 |
 
-Prompt 定義位於 [`.github/prompts/`](.github/prompts/)。
+> **注意**：若出現 `Unsupported class file major version 69`，表示使用了 Java 25。
+> Gradle 8.x 尚不支援 Java 25，請切換至 Java 24 或 21 LTS：
+> ```bash
+> export JAVA_HOME=/path/to/jdk24
+> ```
 
----
+### 步驟
 
-## 目錄結構
-
-```
-sdd-demo-v3/
-├── backend/                        # Spring Boot 後端（Java / Gradle）
-│   ├── src/main/java/              # 業務邏輯、API、安全性
-│   ├── src/main/resources/         # application.yml、Flyway 遷移腳本
-│   └── src/test/                   # 單元測試 + 整合測試
-├── frontend/                       # Vue 3 前端（TypeScript / Vite）
-│   ├── src/                        # 元件、頁面、Pinia Store、Router
-│   └── tests/                      # Vitest 單元測試 + Playwright E2E
-├── specs/
-│   └── 002-work-reporting-system/  # 規格、計劃、任務、合約文件
-├── .github/
-│   ├── workflows/
-│   │   └── auto-fix.yml            # /fix 斜線指令自動開 PR
-│   ├── prompts/                    # Speckit prompt 定義
-│   └── agents/                     # Speckit agent 定義
-├── docker-compose.yml              # 一鍵啟動所有服務
-└── README.md                       # 本文件
-```
-# 報工系統 (Work Report System)
-
-報工時間記錄與管理系統，用於工作項目的時間追蹤與報表統計。
-
-**Feature**: 002-work-reporting-system  
-**Date**: 2026-02-23
-
----
-
-## 前置需求
-
-| 工具 | 版本 | 說明 |
-|------|------|------|
-| JDK | 24 | 後端執行環境 |
-| Gradle | 8.x | 後端建構工具（使用 Wrapper） |
-| Node.js | 20 LTS+ | 前端建構環境 |
-| pnpm | 9.x | 前端套件管理 |
-| Docker & Docker Compose | 最新 | 本地開發資料庫 + 部署 |
-| PostgreSQL | 18.1 | 透過 Docker 執行即可 |
-
-**後端建置注意**：請使用 **Java 24 或 21 LTS** 執行 Gradle。若出現 `Unsupported class file major version 69`，表示目前為 Java 25，Gradle 8.x 尚不支援。請設定 `JAVA_HOME` 後再執行：
-
-```bash
-export JAVA_HOME=/path/to/jdk24   # 例如 Azul 24 或 OpenJDK 24
-cd backend && ./gradlew build
-```
-
----
-
-## 快速啟動（本地開發）
-
-### 1. 複製並切換分支
-
-```bash
-git checkout 002-work-reporting-system
-```
-
-### 2. 啟動 PostgreSQL（透過 Docker）
+**1. 僅啟動資料庫**
 
 ```bash
 docker compose up -d db
 ```
 
-預設連線資訊（定義於 `docker-compose.yml`）：
-- Host: `localhost:5432`
-- Database: `workreport`
-- User: `workreport`
-- Password: `workreport`
-
-### 3. 啟動後端
+**2. 啟動後端**
 
 ```bash
 cd backend
 ./gradlew bootRun
 ```
 
-後端啟動於 `http://localhost:8080`。
-Flyway 將自動執行資料庫遷移。
+後端啟動於 `http://localhost:8080`，Flyway 自動執行資料庫遷移。
 
-### 4. 啟動前端
+**3. 啟動前端**
 
 ```bash
 cd frontend
@@ -291,62 +128,25 @@ pnpm install
 pnpm dev
 ```
 
-前端啟動於 `http://localhost:5173`。
-Vite dev server 自動代理 `/api` 請求至後端。
-
-### 5. 初始測試帳號
-
-系統啟動後，透過 Flyway seed 資料自動建立以下測試帳號：
-
-| 角色 | Email | 初始密碼 | 備註 |
-|------|-------|---------|------|
-| 管理層 | admin@company.com | Welcome123 | 首次登入須改密碼 |
-| PM | pm@company.com | Welcome123 | 首次登入須改密碼 |
-| 部門主管 | manager@company.com | Welcome123 | 首次登入須改密碼 |
-| 執行人員 | executor@company.com | Welcome123 | 首次登入須改密碼 |
-| HR | hr@company.com | Welcome123 | 首次登入須改密碼 |
+前端啟動於 `http://localhost:5173`，Vite dev server 自動代理 `/api` 請求至後端。
 
 ---
 
-## Docker Compose 部署（Linux 伺服器）
+## 測試帳號
 
-### 1. 準備環境
+系統啟動後，Flyway seed 資料自動建立以下帳號（首次登入須強制改密碼）：
 
-```bash
-# 安裝 Docker
-curl -fsSL https://get.docker.com | sh
-
-# 安裝 Docker Compose
-sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-sudo chmod +x /usr/local/bin/docker-compose
-```
-
-### 2. 部署應用
-
-```bash
-# 複製專案
-git clone <repo-url> sdd-demo-v3
-cd sdd-demo-v3
-
-# 切換分支
-git checkout 002-work-reporting-system
-
-# 啟動所有服務
-sudo docker-compose up -d
-
-# 查看狀態
-sudo docker-compose ps
-```
-
-### 3. 服務訪問
-
-- 前端（Nginx）：`http://<伺服器IP>`
-- 後端 API：`http://<伺服器IP>:8089`
-- 資料庫：`<伺服器IP>:5454`
+| 角色 | Email | 初始密碼 |
+|------|-------|-------|
+| 管理層 | admin@company.com | Welcome123 |
+| PM | pm@company.com | Welcome123 |
+| 部門主管 | manager@company.com | Welcome123 |
+| 執行人員 | executor@company.com | Welcome123 |
+| HR | hr@company.com | Welcome123 |
 
 ---
 
-## 建構指令
+## 建構與測試指令
 
 ### 後端
 
@@ -360,14 +160,14 @@ cd backend
 ./gradlew jacocoTestReport
 # 報告位於 build/reports/jacoco/test/html/index.html
 
-# 覆蓋率門檻檢查（≥ 80%）
+# 覆蓋率門櫛檢查（≥ 80%）
 ./gradlew jacocoTestCoverageVerification
+
+# Lint / 靜態分析
+./gradlew checkstyleMain
 
 # 建構 JAR
 ./gradlew bootJar
-
-# Lint / 靜態分析
-./gradlew checkstyleMain spotbugsMain
 ```
 
 ### 前端
@@ -378,11 +178,8 @@ cd frontend
 # 安裝相依套件
 pnpm install
 
-# 開發模式
-pnpm dev
-
-# 執行單元測試
-pnpm test
+# 執行單元測試（Vitest）
+pnpm test:unit
 
 # 測試覆蓋率
 pnpm test:coverage
@@ -394,12 +191,12 @@ pnpm lint
 pnpm build
 ```
 
-### E2E 測試
+### E2E 測試（Playwright）
 
 ```bash
 cd frontend
 
-# 安裝 Playwright 瀏覽器
+# 安裝 Playwright 瀏覽器（首次執行）
 pnpm exec playwright install
 
 # 執行 E2E 測試（需先啟動前後端）
@@ -408,111 +205,164 @@ pnpm test:e2e
 
 ---
 
-## 環境變數
+## 部署到遠端主機
 
-### 後端（application.yml / 環境變數）
+### 一鍵部署腳本
 
-| 變數 | 預設值 | 說明 |
-|------|--------|------|
-| `SPRING_DATASOURCE_URL` | `jdbc:postgresql://localhost:5432/workreport` | 資料庫連線 URL |
-| `DB_USERNAME` | `workreport` | 資料庫使用者 |
-| `DB_PASSWORD` | `workreport` | 資料庫密碼 |
-| `JWT_SECRET` | （開發環境預設值） | JWT 簽章密鑰 |
-| `JWT_EXPIRATION_MS` | `1800000` | JWT 有效期（毫秒，預設 30 分鐘） |
+```bash
+./deploy.sh --host <IP> --user <USER> --password '<PASSWORD>'
+```
 
-### 前端（.env）
+常用參數：
 
-| 變數 | 預設值 | 說明 |
-|------|--------|------|
-| `VITE_API_BASE_URL` | `/api` | API 基礎路徑 |
+```bash
+# 需要 sudo
+./deploy.sh --host 192.168.10.248 --user infoadmin --password 'your_password' --sudo
+
+# 指定遠端路徑
+./deploy.sh --host 192.168.10.248 --user infoadmin --password 'your_password' \
+  --remote-path /home/infoadmin/sdd-demo-v3
+
+# 跳過重新建構映像
+./deploy.sh --host 192.168.10.248 --user infoadmin --password 'your_password' --no-build
+```
+
+### 手動部署步驟
+
+**1. 同步專案到遠端**
+
+```bash
+rsync -avz --delete \
+  --exclude '.git' \
+  --exclude 'backend/build' \
+  --exclude 'backend/.gradle' \
+  --exclude 'frontend/node_modules' \
+  --exclude 'frontend/dist' \
+  ./ user@<IP>:/home/infoadmin/sdd-demo-v3/
+```
+
+**2. 連線並啟動容器**
+
+```bash
+ssh user@<IP>
+cd /home/infoadmin/sdd-demo-v3
+docker compose up -d --build
+```
+
+**3. 驗證服務狀態**
+
+```bash
+docker compose ps
+docker compose logs -f --tail=200
+```
+
+### 常用維運指令
+
+```bash
+# 停止所有服務
+docker compose down
+
+# 重啟單一服務（範例：backend）
+docker compose up -d --build backend
+
+# 清理未使用映像
+docker image prune -f
+```
+
+### 連接埠對應
+
+| 服務 | 主機連接埠 |
+|------|----------|
+| 前端（Nginx） | 80 |
+| 後端 API | 8089 |
+| PostgreSQL | 5454 |
+
+---
+
+## Auto-Fix 工作流程（`/fix` 指令）
+
+當你在任意 **Issue** 留言 `/fix`，GitHub Actions 會自動：
+
+1. 建立分支 `autofix/issue-<編號>`
+2. 在 `.autofix/` 目錄產生包含 Issue 完整上下文的 Markdown 草稿
+3. 開啟一個 Pull Request 供你審查並補充實際修復內容
+
+### 使用方式
+
+在 Issue 的留言欄輸入指令後送出：
+
+```
+/fix
+/fix ui
+/fix flow
+/fix logic
+```
+
+> **注意**：只有帳號 **TH0nnz** 的留言才會觸發此工作流程，且必須是 Issue 留言（PR 留言不觸發）。
+> 允許帳號設定於 [`.github/workflows/auto-fix.yml`](.github/workflows/auto-fix.yml)。
+
+### 流程範例
+
+```
+Issue #42: 按鈕樣式跑版
+
+留言：/fix ui
+  └─▶ Actions 執行
+       ├─ 建立分支 autofix/issue-42
+       ├─ 寫入 .autofix/issue-42.md（含 Issue 標題、內文、留言）
+       └─ 開啟 PR: "autofix [ui]: issue #42 – 按鈕樣式跑版"
+```
+
+---
+
+## Speckit 斜線指令
+
+本專案整合了 **speckit** 設計工件工作流程。在支援 GitHub Copilot Chat 的編輯器中，可使用下列指令：
+
+| 指令 | 說明 |
+|------|------|
+| `/speckit.specify` | 根據需求描述產生 `spec.md` |
+| `/speckit.plan` | 根據 `spec.md` 產生實作計劃 `plan.md` |
+| `/speckit.tasks` | 根據 `plan.md` 產生可執行任務清單 `tasks.md` |
+| `/speckit.implement` | 依序執行 `tasks.md` 中的任務 |
+| `/speckit.analyze` | 跨工件一致性分析（需 spec / plan / tasks 都存在） |
+| `/speckit.clarify` | 對規格中模糊之處提出澄清問題 |
+| `/speckit.checklist` | 產生功能驗收清單 |
+| `/speckit.taskstoissues` | 將 `tasks.md` 轉換為 GitHub Issues |
+| `/speckit.constitution` | 建立或更新專案治理憲章 |
+
+Prompt 定義位於 [`.github/prompts/`](.github/prompts/)。
 
 ---
 
 ## 目錄結構
 
 ```
-project-root/
-├── backend/                 # Spring Boot 後端
-│   ├── src/main/java/       # Java 原始碼
-│   ├── src/main/resources/  # 設定檔 + Flyway 遷移
-│   ├── src/test/java/       # 測試
-│   ├── build.gradle         # Gradle 建構檔
-│   └── Dockerfile
-├── frontend/                # Vue 3 前端
-│   ├── src/                 # TypeScript/Vue 原始碼
-│   ├── tests/               # 測試
-│   ├── package.json
-│   ├── vite.config.ts
-│   └── Dockerfile
-├── docker-compose.yml       # 本地開發 + 部署設定
-└── specs/                   # 規格文件
-    └── 002-work-reporting-system/
-        ├── spec.md
-        ├── plan.md
-        ├── research.md
-        ├── data-model.md
-        ├── quickstart.md
-        └── contracts/
+sdd-demo-v3/
+├── backend/                        # Spring Boot 後端（Java 24 / Gradle）
+│   ├── src/main/java/              # 業務邏輯、REST API、Spring Security
+│   ├── src/main/resources/         # application.yml、Flyway 遷移腳本
+│   └── src/test/                   # 單元測試 + Testcontainers 整合測試
+├── frontend/                       # Vue 3 前端（TypeScript / Vite）
+│   ├── src/
+│   │   ├── api/                    # Axios API 客戶端
+│   │   ├── components/             # 可重用 UI 元件
+│   │   ├── pages/                  # 各角色頁面（admin/pm/dept/executor/hr）
+│   │   ├── stores/                 # Pinia 狀態管理
+│   │   └── router/                 # Vue Router 路由設定
+│   └── tests/
+│       ├── unit/                   # Vitest 單元測試
+│       └── e2e/                    # Playwright E2E 測試
+├── specs/
+│   └── 002-work-reporting-system/  # 規格、計劃、任務、API 合約文件
+├── performance/
+│   └── k6/                         # k6 效能測試腳本
+├── .github/
+│   ├── workflows/
+│   │   └── auto-fix.yml            # /fix 斜線指令自動開 PR
+│   ├── prompts/                    # Speckit prompt 定義
+│   └── agents/                     # Speckit agent 定義
+├── docker-compose.yml              # 一鍵啟動所有服務
+├── deploy.sh                       # 一鍵部署腳本
+└── README.md                       # 本文件
 ```
-
----
-
-## 常用 Docker 命令
-
-```bash
-# 查看執行中的服務
-docker-compose ps
-
-# 檢視日誌
-docker-compose logs -f
-
-# 停止所有服務
-docker-compose down
-
-# 完全清除（包括 volume）
-docker-compose down -v
-
-# 重啟服務
-docker-compose restart
-
-# 進入資料庫
-docker-compose exec db psql -U workreport -d workreport
-```
-
----
-
-在專案根目錄或 backend 目錄下執行（需使用 Java 24 或 21，見上方「後端建置注意」）：
-
-| 想做什麼 | 指令 |
-|----------|------|
-| 編譯 | `cd backend && ./gradlew build` |
-| 只編譯不跑測試 | `cd backend && ./gradlew build -x test` |
-| 跑測試 | `cd backend && ./gradlew test` |
-| 啟動 Spring Boot 應用 | `cd backend && ./gradlew bootRun` |
-
-## 數據庫遷移說明
-
-使用 Flyway 進行資料庫版本管理。遷移文件位於 `backend/src/main/resources/db/migration/`。
-
-首次啟動時，系統會自動執行所有遷移文件：
-- `V1__...` - 建立資料庫結構
-- `V2__...` - 插入測試資料
-
-**重要**: 如需重置資料庫，請：
-1. 停止容器：`docker-compose down -v`
-2. 刪除 volume：`docker volume prune`
-3. 重新啟動：`docker-compose up -d`
-
----
-
-## 詳細文件
-
-更多詳細說明請參考 [specs/002-work-reporting-system/quickstart.md](specs/002-work-reporting-system/quickstart.md)
-
----
-
-### 結語：
-切記如果用docker compose在linux上啟動，會自動幫你init db，要砍掉所有table 在使用backend/src/main/resources/db/migration 中的v1、v2、v3 重建db
-
-
-**最後更新**: 2026-02-26
