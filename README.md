@@ -13,7 +13,7 @@
 - [測試帳號](#測試帳號)
 - [建構與測試](#建構與測試)
 - [部署到遠端主機](#部署到遠端主機)
-- [Auto-Fix 工作流程（/fix）](#auto-fix-工作流程fix)
+- [Auto-Fix 工作流程（Assign Copilot）](#auto-fix-工作流程assign-copilot)
 - [CI/CD 工作流程](#cicd-工作流程)
 - [Speckit 斜線指令](#speckit-斜線指令)
 - [目錄結構](#目錄結構)
@@ -241,29 +241,30 @@ docker compose ps
 docker compose logs -f --tail=200
 ```
 
-## Auto-Fix 工作流程（`/fix`）
+## Auto-Fix 工作流程（Assign Copilot）
 
-在 Issue 留言輸入以下指令可觸發自動修復流程：
+目前 Auto-Fix 採用「Issue 指派給 copilot」觸發，不使用 `/fix` 留言指令。
 
-```text
-/fix
-/fix ui
-/fix flow
-/fix logic
-/fix add
-```
+標準操作流程：
+
+1. QA 或任一成員建立 Issue。
+2. `auto-fix-on-issue.yml` 會自動回覆 Issue Intake Summary，整理欄位內容。
+3. 維護者將該 Issue 的 Assignee 指派為 `copilot`。
+4. `auto-fix.yml` 觸發，並在 Issue 留言 `@copilot` 任務指示。
+5. Copilot 依指示修復問題、執行驗證並開立 PR。
 
 流程重點：
 
-1. 偵測到 `/fix` 留言後觸發 workflow。
-2. 由 workflow 發佈 `@copilot` 指示留言。
-3. 建議修復內容與 `.autofix/issue-<編號>.md` 報告同一個 commit 提交。
+1. 開 Issue 後會先執行 intake 流程，協助整理需求品質。
+2. 只有當 assignee 為 `copilot` 時才會啟動修復流程。
+3. 修復流程會由 workflow 發佈 `@copilot` 指示留言。
+4. 建議修復內容與 `.autofix/issue-<編號>.md` 報告同一個 commit 提交。
 
 限制條件：
 
-- 僅支援 GitHub Issue（PR 留言不屬於此流程）。
-- 需由維護者手動將 Issue 指派給 `copilot` 才會啟動修復。
-- 設定檔位置：`.github/workflows/auto-fix.yml`、`.github/workflows/auto-fix-on-issue.yml`
+- 僅支援 GitHub Issue（PR 不在此自動流程內）。
+- 若要重新觸發，建議先移除 Assignee 再重新指派 `copilot`。
+- 設定檔位置：`.github/workflows/auto-fix.yml`、`.github/workflows/auto-fix-on-issue.yml`。
 
 完整操作方式請參考：`GITHUB_COPILOT_CICD_MANUAL.md`
 
