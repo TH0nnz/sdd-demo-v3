@@ -1,0 +1,80 @@
+name: CD Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  verify:
+    name: Verify Before Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 24
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '24'
+          cache: gradle
+
+      - name: Backend verification
+        working-directory: backend
+        env:
+          CI: true
+        run: |
+          chmod +x gradlew
+          ./gradlew clean test jacocoTestCoverageVerification checkstyleMain checkstyleTest
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Frontend verification
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run lint
+          npm run test:unit -- --run
+          npm run build
+
+  deploy:
+    name: Deploy to Server
+    runs-on: ubuntu-latest
+    needs: verify
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate required secrets
+        run: |
+          test -n "${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}"
+          test -n "${{ secrets.DEPLOY_REMOTE_HOST }}"
+          test -n "${{ secrets.DEPLOY_REMOTE_USER }}"
+          test -n "${{ secrets.DEPLOY_REMOTE_PATH }}"
+
+      - name: Set up SSH agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
+
+      - name: Add remote host to known_hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H "${{ secrets.DEPLOY_REMOTE_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Run deployment script
+        env:
+          REMOTE_HOST: ${{ secrets.DEPLOY_REMOTE_HOST }}
+          REMOTE_USER: ${{ secrets.DEPLOY_REMOTE_USER }}
+          REMOTE_PATH: ${{ secrets.DEPLOY_REMOTE_PATH }}
+          USE_SUDO: ${{ secrets.DEPLOY_USE_SUDO }}
+          SUDO_PASSWORD: ${{ secrets.DEPLOY_SUDO_PASSWORD }}
+        run: |
+          chmod +x deploy.sh
+          ./deploy.sh

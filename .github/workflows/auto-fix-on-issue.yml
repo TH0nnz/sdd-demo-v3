@@ -1,110 +1,62 @@
-name: Auto-Fix on Issue Opened
+name: Issue Intake on Opened
 
 on:
   issues:
     types: [opened]
 
 permissions:
-  contents: write      # 允許推送程式碼
-  pull-requests: write # 允許建立 PR
-  issues: write        # 允許操作 issues
+  issues: write
 
 jobs:
-  auto-fix:
-    # Only run for issues filed by the repository owner
-    if: github.event.issue.user.login == github.repository_owner
+  intake:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Extract issue metadata
-        id: ctx
-        env:
-          ISSUE_NUMBER: ${{ github.event.issue.number }}
-          ISSUE_BODY: ${{ github.event.issue.body }}
-        run: |
-          echo "issue_number=${ISSUE_NUMBER}" >> "$GITHUB_OUTPUT"
-
-          # Extract the issue type (ui / flow / logic / add) from the "類型" section.
-          # The issue template renders it as:
-          #   ### 類型
-          #   <blank line>
-          #   <type value>
-          CATEGORY=$(echo "$ISSUE_BODY" \
-            | awk '/^### 類型/{found=1; next} found && NF{print tolower($0); exit}' \
-            | grep -Eo '(ui|flow|logic|add)' | head -1 || true)
-          echo "category=${CATEGORY}" >> "$GITHUB_OUTPUT"
-
-      - name: Notify Copilot and post instructions
+      - name: Post issue intake summary
         uses: actions/github-script@v7
-        env:
-          CATEGORY: ${{ steps.ctx.outputs.category }}
         with:
           script: |
-            const issueNumber = ${{ steps.ctx.outputs.issue_number }};
-            const category    = process.env.CATEGORY ?? '';
-            const categoryTag = category ? ` [${category}]` : '';
-            const autofixFile = `.autofix/issue-${issueNumber}.md`;
+            const issue = context.payload.issue;
+            const issueNumber = issue.number;
+            const body = issue.body || '';
 
-            // Note: Copilot assignment is handled via @copilot mention in the comment below.
-            // GitHub's mention system will notify the Copilot agent automatically.
-            core.info(`Workflow triggered for Issue #${issueNumber} with instructions for Copilot`);
-
-            // Post an instruction comment for the Copilot agent.
-            const baseBranch = context.payload.repository.default_branch || 'main';
-            const comment = [
-              `@copilot 請根據此 Issue 的描述進行修復${categoryTag}。（由 Issue 開立自動觸發）`,
-              ``,
-              `> **目標分支**：請將 PR 開立至 \`${baseBranch}\` 分支。`,
-              ``,
-              `## 資訊檢查清單（請確保 Issue 內容已補充）`,
-              ``,
-              `在本人進行修復前，請確認 Issue 內容已包含以下資訊：`,
-              ``,
-              `- [ ] **類型**：UI / Flow / Logic / Add 其中之一`,
-              `- [ ] **重現步驟**：清楚列出如何重現問題`,
-              `- [ ] **實際結果**：描述目前觀察到的不正確行為`,
-              `- [ ] **預期結果**：描述期望的正確行為`,
-              `- [ ] **相關元件/檔案**（強烈建議）：指出出問題的檔案`,
-              `- [ ] **補充資訊**（可選）：如有 Console log 或截圖，請附上`,
-              ``,
-              `若 Issue 內容不完整，請先補充資訊後再使用 /fix。`,
-              ``,
-
-              `## 任務要求`,
-              `1. 根據 Issue 內容，找出相關程式碼並進行修正。`,
-              `2. 完成修改後，在 \`${autofixFile}\` 建立一份 Markdown 報告，包含：`,
-              `   - **問題描述**：重述此 Issue 要解決的問題`,
-              `   - **修改檔案清單**：列出所有更動的檔案及更動摘要`,
-              `   - **修復說明**：說明修復邏輯與思路`,
-              `   - **測試步驟**：如何驗證修復成果`,
-              `3. 將所有變更（程式碼修改 + \`${autofixFile}\`）放入同一個 commit，並開立 PR 供審核。`,
-              ``,
-              `## Commit 錯誤處理`,
-              `如果在 commit 時遇到錯誤，請依照以下步驟排除：`,
-              `- **Lint／格式錯誤**：執行對應的格式化指令（如 \`eslint --fix\`、\`prettier --write\`）修正後重新 commit。`,
-              `- **測試失敗**：閱讀錯誤訊息，修正導致測試失敗的程式碼後重新 commit。`,
-              `- **Merge conflict**：使用 \`git status\` 確認衝突檔案，手動解決衝突後執行 \`git add\` 再重新 commit。`,
-              `- **Nothing to commit**：確認修改已正確儲存至磁碟，必要時重新套用變更。`,
-              `- **其他錯誤**：閱讀完整錯誤訊息，依錯誤類型採取對應修正，排除後再重試 commit。`,
-              ``,
-              `每次排除錯誤後，請重新驗證所有變更並再次嘗試 commit，直到成功為止。`,
-            ].join('\n');
-
-            // Assign Copilot to the issue to trigger the Copilot Coding Agent.
-            try {
-              await github.rest.issues.addAssignees({
-                owner:        context.repo.owner,
-                repo:         context.repo.repo,
-                issue_number: issueNumber,
-                assignees:    ['copilot'],
-              });
-            } catch (e) {
-              core.warning(`Could not assign copilot to issue: ${e.message}`);
+            function section(title) {
+              const escaped = title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+              const re = new RegExp(`^###\\s*${escaped}\\s*$([\\s\\S]*?)(?=^###\\s|$)`, 'mi');
+              const m = body.match(re);
+              return m ? m[1].trim() : '';
             }
 
+            const rawType = section('類型').toLowerCase();
+            const typeMatch = rawType.match(/\b(ui|flow|logic|add)\b/);
+            const category = typeMatch ? typeMatch[1] : '未分類';
+
+            const steps = section('重現步驟') || '（未填）';
+            const actual = section('實際結果') || '（未填）';
+            const expected = section('預期結果') || '（未填）';
+            const files = section('相關元件/檔案') || '（未填）';
+            const extra = section('補充資訊') || '（未填）';
+
+            const comment = [
+              `## Issue Intake Summary`,
+              ``,
+              `- 類型：${category}`,
+              `- 提單者：@${issue.user.login}`,
+              ``,
+              `### 已整理內容`,
+              `- 重現步驟：${steps}`,
+              `- 實際結果：${actual}`,
+              `- 預期結果：${expected}`,
+              `- 相關元件/檔案：${files}`,
+              `- 補充資訊：${extra}`,
+              ``,
+              `### 下一步`,
+              `- 由維護者手動將 Issue 指派給 @copilot。`,
+              `- 指派後會觸發修復工作流，並請 Copilot 進行修復、測試、開 PR。`,
+            ].join('\n');
+
             await github.rest.issues.createComment({
-              owner:        context.repo.owner,
-              repo:         context.repo.repo,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
               issue_number: issueNumber,
-              body:         comment,
+              body: comment,
             });

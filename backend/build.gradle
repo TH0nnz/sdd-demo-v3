@@ -67,7 +67,8 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
-    ignoreFailures = true
+    // In CI, test failures must fail the pipeline; keep local runs permissive.
+    ignoreFailures = !System.getenv().containsKey('CI')
     finalizedBy jacocoTestReport
 }
 
@@ -128,6 +129,7 @@ checkstyle {
     toolVersion = '10.21.4'
     configFile = file("${rootDir}/config/checkstyle/checkstyle.xml")
     maxWarnings = 999
-    ignoreFailures = true
+    // In CI, checkstyle failures must fail the pipeline; keep local runs permissive.
+    ignoreFailures = !System.getenv().containsKey('CI')
 }
 
