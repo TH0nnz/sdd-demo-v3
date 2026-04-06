@@ -1,9 +1,11 @@
 package com.workreport.service;
 
+import com.workreport.annotation.RequireRole;
 import com.workreport.dto.common.PageResponse;
 import com.workreport.dto.task.TaskResponse;
 import com.workreport.entity.Task;
 import com.workreport.enums.NotificationType;
+import com.workreport.enums.Role;
 import com.workreport.enums.TaskStatus;
 import com.workreport.exception.BusinessRuleException;
 import com.workreport.exception.ResourceNotFoundException;
@@ -29,6 +31,7 @@ public class ExecutorTaskService {
         this.notificationService = notificationService;
     }
 
+    @RequireRole({Role.EXECUTOR, Role.ADMIN})
     @Transactional(readOnly = true)
     public PageResponse<TaskResponse> getMyTasks(Long userId, TaskStatus statusFilter, Pageable pageable) {
         Page<Task> page;
@@ -40,6 +43,7 @@ public class ExecutorTaskService {
         return PageResponse.from(page.map(this::toResponse));
     }
 
+    @RequireRole({Role.EXECUTOR, Role.ADMIN})
     public TaskResponse completeTask(Long userId, Long taskId) {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new ResourceNotFoundException("Task not found: " + taskId));

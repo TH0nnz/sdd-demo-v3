@@ -1,9 +1,11 @@
 package com.workreport.service;
 
+import com.workreport.annotation.RequireRole;
 import com.workreport.dto.common.PageResponse;
 import com.workreport.dto.project.ProjectDashboardResponse;
 import com.workreport.dto.project.ProjectDashboardResponse.TaskSummaryDto;
 import com.workreport.entity.Project;
+import com.workreport.enums.Role;
 import com.workreport.enums.TaskStatus;
 import com.workreport.repository.ProjectRepository;
 import com.workreport.repository.TaskRepository;
@@ -31,6 +33,7 @@ public class PmProjectService {
         this.taskRepository = taskRepository;
     }
 
+    @RequireRole({Role.PM, Role.ADMIN})
     public PageResponse<ProjectDashboardResponse> getMyProjects(Long pmUserId, Pageable pageable) {
         Page<Project> page = projectRepository.findByPmId(pmUserId, pageable);
         return PageResponse.from(page.map(this::toResponse));

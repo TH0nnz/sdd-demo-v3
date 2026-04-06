@@ -1,10 +1,12 @@
 package com.workreport.service;
 
+import com.workreport.annotation.RequireRole;
 import com.workreport.dto.department.DeptOverviewResponse;
 import com.workreport.dto.department.MemberTaskResponse;
 import com.workreport.dto.department.MemberSummaryDto;
 import com.workreport.entity.Task;
 import com.workreport.entity.User;
+import com.workreport.enums.Role;
 import com.workreport.enums.TaskStatus;
 import com.workreport.exception.BusinessRuleException;
 import com.workreport.exception.ResourceNotFoundException;
@@ -37,6 +39,7 @@ public class DeptOverviewService {
                 this.taskRepository = taskRepository;
     }
 
+        @RequireRole({Role.DEPT_MANAGER, Role.ADMIN})
     public DeptOverviewResponse getDepartmentOverview(Long deptManagerUserId) {
         User manager = userRepository.findById(deptManagerUserId)
                 .orElseThrow(() -> new BusinessRuleException("User not found", HttpStatus.NOT_FOUND));
@@ -79,10 +82,12 @@ public class DeptOverviewService {
         return new DeptOverviewResponse(deptName, members.size(), totalHoursThisWeek, totalHoursThisMonth, memberSummaries);
     }
 
+        @RequireRole({Role.DEPT_MANAGER, Role.ADMIN})
         public List<MemberSummaryDto> getDepartmentMembers(Long deptManagerUserId) {
                 return getDepartmentOverview(deptManagerUserId).members();
         }
 
+        @RequireRole({Role.DEPT_MANAGER, Role.ADMIN})
     public List<MemberTaskResponse> getDepartmentMemberTasks(Long deptManagerUserId, Long memberUserId) {
         User manager = userRepository.findById(deptManagerUserId)
                 .orElseThrow(() -> new BusinessRuleException("User not found", HttpStatus.NOT_FOUND));

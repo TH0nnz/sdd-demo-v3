@@ -1,5 +1,6 @@
 package com.workreport.service;
 
+import com.workreport.annotation.PublicApi;
 import com.workreport.dto.common.PageResponse;
 import com.workreport.dto.notification.NotificationResponse;
 import com.workreport.entity.Notification;
@@ -27,6 +28,7 @@ public class NotificationService {
         this.userRepository = userRepository;
     }
 
+    @PublicApi
     @Transactional
     public void notify(Long userId, NotificationType type, String title, String content) {
         User user = userRepository.findById(userId)
@@ -43,6 +45,7 @@ public class NotificationService {
         notificationRepository.save(notification);
     }
 
+    @PublicApi
     @Transactional(readOnly = true)
     public PageResponse<NotificationResponse> getNotifications(Long userId, Boolean unreadOnly, Pageable pageable) {
         Page<Notification> page;
@@ -54,6 +57,7 @@ public class NotificationService {
         return PageResponse.from(page.map(this::toResponse));
     }
 
+    @PublicApi
     @Transactional
     public void markAsRead(Long notificationId, Long userId) {
         Notification notification = notificationRepository.findById(notificationId)
@@ -67,6 +71,7 @@ public class NotificationService {
         notificationRepository.save(notification);
     }
 
+    @PublicApi
     @Transactional(readOnly = true)
     public long getUnreadCount(Long userId) {
         return notificationRepository.countByUserIdAndIsRead(userId, false);

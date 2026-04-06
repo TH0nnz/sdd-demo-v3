@@ -1,5 +1,6 @@
 package com.workreport.service;
 
+import com.workreport.annotation.RequireRole;
 import com.workreport.dto.common.PageResponse;
 import com.workreport.dto.workentry.CreateWorkEntryRequest;
 import com.workreport.dto.workentry.UpdateWorkEntryRequest;
@@ -8,6 +9,7 @@ import com.workreport.entity.Task;
 import com.workreport.entity.User;
 import com.workreport.entity.WorkEntry;
 import com.workreport.enums.NotificationType;
+import com.workreport.enums.Role;
 import com.workreport.enums.TaskStatus;
 import com.workreport.exception.BusinessRuleException;
 import com.workreport.exception.ResourceNotFoundException;
@@ -47,6 +49,7 @@ public class WorkEntryService {
         this.notificationService = notificationService;
     }
 
+    @RequireRole({Role.EXECUTOR, Role.ADMIN})
     public WorkEntryResponse createWorkEntry(Long userId, CreateWorkEntryRequest request) {
         Task task = taskRepository.findById(request.taskId())
                 .orElseThrow(() -> new ResourceNotFoundException("Task not found: " + request.taskId()));
@@ -123,6 +126,7 @@ public class WorkEntryService {
         return toResponse(entry, LocalDate.now());
     }
 
+    @RequireRole({Role.EXECUTOR, Role.ADMIN})
     public WorkEntryResponse updateWorkEntry(Long userId, Long entryId, UpdateWorkEntryRequest request) {
         WorkEntry entry = workEntryRepository.findById(entryId)
                 .orElseThrow(() -> new ResourceNotFoundException("WorkEntry not found: " + entryId));
@@ -173,6 +177,7 @@ public class WorkEntryService {
         return toResponse(entry, LocalDate.now());
     }
 
+    @RequireRole({Role.EXECUTOR, Role.ADMIN})
     @Transactional(readOnly = true)
     public PageResponse<WorkEntryResponse> getWorkEntries(Long userId, LocalDate startDate,
                                                           LocalDate endDate, Pageable pageable) {

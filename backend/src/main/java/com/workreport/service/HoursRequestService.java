@@ -1,5 +1,6 @@
 package com.workreport.service;
 
+import com.workreport.annotation.RequireRole;
 import com.workreport.dto.common.PageResponse;
 import com.workreport.dto.hoursrequest.CreateHoursRequestRequest;
 import com.workreport.dto.hoursrequest.HoursRequestResponse;
@@ -37,10 +38,10 @@ public class HoursRequestService {
     private final NotificationService notificationService;
 
     public HoursRequestService(HoursRequestRepository hoursRequestRepository,
-                                ProjectRepository projectRepository,
-                                TaskRepository taskRepository,
-                                UserRepository userRepository,
-                                NotificationService notificationService) {
+                               ProjectRepository projectRepository,
+                               TaskRepository taskRepository,
+                               UserRepository userRepository,
+                               NotificationService notificationService) {
         this.hoursRequestRepository = hoursRequestRepository;
         this.projectRepository = projectRepository;
         this.taskRepository = taskRepository;
@@ -48,6 +49,7 @@ public class HoursRequestService {
         this.notificationService = notificationService;
     }
 
+    @RequireRole({Role.PM, Role.ADMIN})
     public HoursRequestResponse createRequest(Long pmUserId, CreateHoursRequestRequest request) {
         Project project = projectRepository.findById(request.projectId())
                 .orElseThrow(() -> new ResourceNotFoundException("Project not found: " + request.projectId()));
@@ -98,6 +100,7 @@ public class HoursRequestService {
         return toResponse(hoursRequest);
     }
 
+    @RequireRole({Role.PM, Role.ADMIN})
     @Transactional(readOnly = true)
     public PageResponse<HoursRequestResponse> getRequests(Long pmUserId, Pageable pageable) {
         Page<HoursRequest> page = hoursRequestRepository.findByRequesterId(pmUserId, pageable);

@@ -1,5 +1,6 @@
 package com.workreport.service;
 
+import com.workreport.annotation.PublicApi;
 import com.workreport.dto.auth.ChangePasswordRequest;
 import com.workreport.dto.auth.LoginRequest;
 import com.workreport.dto.auth.LoginResponse;
@@ -36,6 +37,7 @@ public class AuthService {
         this.jwtTokenProvider = jwtTokenProvider;
     }
 
+    @PublicApi
     @Transactional
     public LoginResponse login(LoginRequest request) {
         User user = userRepository.findByEmail(request.email())
@@ -74,6 +76,7 @@ public class AuthService {
         return new LoginResponse(token, userInfo, !user.isPasswordChanged());
     }
 
+    @PublicApi
     @Transactional
     public void changePassword(Long userId, ChangePasswordRequest request) {
         User user = userRepository.findById(userId)

@@ -1,5 +1,6 @@
 package com.workreport.service;
 
+import com.workreport.annotation.RequireRole;
 import com.workreport.dto.common.PageResponse;
 import com.workreport.dto.task.CreateTaskRequest;
 import com.workreport.dto.task.TaskResponse;
@@ -48,6 +49,7 @@ public class TaskService {
         this.auditLogService = auditLogService;
     }
 
+    @RequireRole({Role.PM, Role.ADMIN})
     public TaskResponse createTask(Long pmUserId, Long projectId, CreateTaskRequest request) {
         Project project = getProjectAndValidateOwnership(pmUserId, projectId);
 
@@ -75,6 +77,7 @@ public class TaskService {
         return toResponse(task);
     }
 
+    @RequireRole({Role.PM, Role.ADMIN})
     public TaskResponse updateTask(Long pmUserId, Long projectId, Long taskId, UpdateTaskRequest request) {
         getProjectAndValidateOwnership(pmUserId, projectId);
         Task task = getTask(taskId, projectId);
@@ -101,6 +104,7 @@ public class TaskService {
         return toResponse(task);
     }
 
+    @RequireRole({Role.PM, Role.ADMIN})
     public TaskResponse closeTask(Long pmUserId, Long projectId, Long taskId) {
         getProjectAndValidateOwnership(pmUserId, projectId);
         Task task = getTask(taskId, projectId);
@@ -118,6 +122,7 @@ public class TaskService {
         return toResponse(task);
     }
 
+    @RequireRole({Role.PM, Role.ADMIN})
     public void deleteTask(Long pmUserId, Long projectId, Long taskId) {
         getProjectAndValidateOwnership(pmUserId, projectId);
         Task task = getTask(taskId, projectId);
@@ -129,12 +134,14 @@ public class TaskService {
         taskRepository.delete(task);
     }
 
+    @RequireRole({Role.PM, Role.ADMIN})
     @Transactional(readOnly = true)
     public PageResponse<TaskResponse> getTasks(Long projectId, Pageable pageable) {
         Page<Task> page = taskRepository.findByProjectId(projectId, pageable);
         return PageResponse.from(page.map(this::toResponse));
     }
 
+    @RequireRole({Role.PM, Role.ADMIN})
     @Transactional(readOnly = true)
     public List<UserResponse> getAssignableExecutors(Long projectId) {
         Project project = projectRepository.findById(projectId)

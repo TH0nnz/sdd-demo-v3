@@ -1,5 +1,6 @@
 package com.workreport.service;
 
+import com.workreport.annotation.PublicApi;
 import com.workreport.entity.AuditLog;
 import com.workreport.enums.AuditActionType;
 import com.workreport.repository.AuditLogRepository;
@@ -17,6 +18,7 @@ public class AuditLogService {
         this.auditLogRepository = auditLogRepository;
     }
 
+    @PublicApi
     @Transactional
     public void log(AuditActionType action, Long actorId, String targetEntity, Long targetId, String summary) {
         AuditLog auditLog = AuditLog.builder()

@@ -1,9 +1,11 @@
 package com.workreport.service;
 
+import com.workreport.annotation.RequireRole;
 import com.workreport.dto.department.CreateDepartmentRequest;
 import com.workreport.dto.department.DepartmentResponse;
 import com.workreport.dto.department.UpdateDepartmentRequest;
 import com.workreport.entity.Department;
+import com.workreport.enums.Role;
 import com.workreport.exception.BusinessRuleException;
 import com.workreport.repository.DepartmentRepository;
 import com.workreport.repository.UserRepository;
@@ -27,6 +29,7 @@ public class DepartmentService {
         this.userRepository = userRepository;
     }
 
+    @RequireRole({Role.HR, Role.ADMIN})
     @Transactional(readOnly = true)
     public List<DepartmentResponse> listDepartments() {
         return departmentRepository.findAll().stream()
@@ -34,6 +37,7 @@ public class DepartmentService {
                 .toList();
     }
 
+    @RequireRole({Role.HR, Role.ADMIN})
     public DepartmentResponse createDepartment(CreateDepartmentRequest request) {
         if (departmentRepository.existsByName(request.name())) {
             throw new BusinessRuleException("部門名稱已存在: " + request.name());
@@ -46,6 +50,7 @@ public class DepartmentService {
         return DepartmentResponse.from(departmentRepository.save(dept));
     }
 
+    @RequireRole({Role.HR, Role.ADMIN})
     public DepartmentResponse updateDepartment(Long id, UpdateDepartmentRequest request) {
         Department dept = departmentRepository.findById(id)
                 .orElseThrow(() -> new BusinessRuleException("部門不存在", HttpStatus.NOT_FOUND));
@@ -57,6 +62,7 @@ public class DepartmentService {
         return DepartmentResponse.from(departmentRepository.save(dept));
     }
 
+    @RequireRole({Role.HR, Role.ADMIN})
     public void deleteDepartment(Long id) {
         Department dept = departmentRepository.findById(id)
                 .orElseThrow(() -> new BusinessRuleException("部門不存在", HttpStatus.NOT_FOUND));

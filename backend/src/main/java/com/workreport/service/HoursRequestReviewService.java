@@ -1,5 +1,6 @@
 package com.workreport.service;
 
+import com.workreport.annotation.RequireRole;
 import com.workreport.dto.common.PageResponse;
 import com.workreport.dto.hoursrequest.HoursRequestResponse;
 import com.workreport.dto.hoursrequest.ReviewHoursRequestRequest;
@@ -8,6 +9,7 @@ import com.workreport.entity.User;
 import com.workreport.enums.HoursRequestStatus;
 import com.workreport.enums.HoursRequestTargetType;
 import com.workreport.enums.NotificationType;
+import com.workreport.enums.Role;
 import com.workreport.exception.BusinessRuleException;
 import com.workreport.exception.ResourceNotFoundException;
 import com.workreport.repository.HoursRequestRepository;
@@ -43,6 +45,7 @@ public class HoursRequestReviewService {
         this.notificationService = notificationService;
     }
 
+    @RequireRole(Role.ADMIN)
     public HoursRequestResponse reviewRequest(Long adminUserId, Long requestId, ReviewHoursRequestRequest request) {
         if (request.decision() != HoursRequestStatus.APPROVED && request.decision() != HoursRequestStatus.REJECTED) {
             throw new BusinessRuleException("decision 只能為 APPROVED 或 REJECTED");
@@ -96,6 +99,7 @@ public class HoursRequestReviewService {
         return toResponse(hoursRequest);
     }
 
+    @RequireRole(Role.ADMIN)
     @Transactional(readOnly = true)
     public PageResponse<HoursRequestResponse> getAllRequests(Pageable pageable) {
         Page<HoursRequest> page = hoursRequestRepository.findAll(pageable);

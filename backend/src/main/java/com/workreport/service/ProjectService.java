@@ -1,5 +1,6 @@
 package com.workreport.service;
 
+import com.workreport.annotation.RequireRole;
 import com.workreport.dto.common.PageResponse;
 import com.workreport.dto.project.CreateProjectRequest;
 import com.workreport.dto.project.ProjectResponse;
@@ -54,6 +55,7 @@ public class ProjectService {
         this.auditLogService = auditLogService;
     }
 
+    @RequireRole(Role.ADMIN)
     public ProjectResponse createProject(CreateProjectRequest request) {
         User pm = userRepository.findById(request.pmId())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + request.pmId()));
@@ -76,6 +78,7 @@ public class ProjectService {
         return toResponse(project);
     }
 
+    @RequireRole(Role.ADMIN)
     public ProjectResponse updateProject(Long id, UpdateProjectRequest request) {
         Project project = projectRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Project not found: " + id));
@@ -102,6 +105,7 @@ public class ProjectService {
         return toResponse(project);
     }
 
+    @RequireRole(Role.ADMIN)
     public ProjectResponse closeProject(Long projectId) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ResourceNotFoundException("Project not found: " + projectId));
@@ -129,6 +133,7 @@ public class ProjectService {
         return toResponse(project);
     }
 
+    @RequireRole(Role.ADMIN)
     public ProjectResponse activateProject(Long projectId) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ResourceNotFoundException("Project not found: " + projectId));
@@ -148,6 +153,7 @@ public class ProjectService {
         return toResponse(project);
     }
 
+    @RequireRole(Role.ADMIN)
     public void deleteProject(Long projectId) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ResourceNotFoundException("Project not found: " + projectId));
@@ -159,12 +165,14 @@ public class ProjectService {
         projectRepository.delete(project);
     }
 
+    @RequireRole(Role.ADMIN)
     @Transactional(readOnly = true)
     public PageResponse<ProjectResponse> getProjects(Pageable pageable) {
         Page<Project> page = projectRepository.findAll(pageable);
         return PageResponse.from(page.map(this::toResponse));
     }
 
+    @RequireRole(Role.ADMIN)
     @Transactional(readOnly = true)
     public ProjectResponse getProjectById(Long id) {
         Project project = projectRepository.findById(id)

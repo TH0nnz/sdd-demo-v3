@@ -1,5 +1,6 @@
 package com.workreport.service;
 
+import com.workreport.annotation.RequireRole;
 import com.workreport.dto.common.PageResponse;
 import com.workreport.dto.user.CreateUserRequest;
 import com.workreport.dto.user.CreateUserResponse;
@@ -59,6 +60,7 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    @RequireRole({Role.HR, Role.ADMIN})
     public CreateUserResponse createUser(CreateUserRequest request) {
         if (userRepository.findByEmail(request.email()).isPresent()) {
             throw new BusinessRuleException("Email already exists: " + request.email());
@@ -83,6 +85,7 @@ public class UserService {
         return new CreateUserResponse(UserResponse.from(saved), tempPassword);
     }
 
+    @RequireRole({Role.HR, Role.ADMIN})
     public UserResponse updateUser(Long userId, UpdateUserRequest request) {
         User user = findUserById(userId);
         Set<Role> originalRoles = new HashSet<>(user.getRoles());
@@ -121,6 +124,7 @@ public class UserService {
         return UserResponse.from(userRepository.save(user));
     }
 
+    @RequireRole({Role.HR, Role.ADMIN})
     public UserResponse disableUser(Long userId) {
         Long currentUserId = getCurrentUserId();
         if (currentUserId.equals(userId)) {
@@ -153,6 +157,7 @@ public class UserService {
         return UserResponse.from(userRepository.save(user));
     }
 
+    @RequireRole({Role.HR, Role.ADMIN})
     public UserResponse enableUser(Long userId) {
         User user = findUserById(userId);
         user.setActive(true);
@@ -170,6 +175,7 @@ public class UserService {
         return UserResponse.from(userRepository.save(user));
     }
 
+    @RequireRole({Role.HR, Role.ADMIN})
     public ResetPasswordResponse resetPassword(Long userId) {
         User user = findUserById(userId);
         String tempPassword = generateTempPassword();
@@ -179,6 +185,7 @@ public class UserService {
         return new ResetPasswordResponse(tempPassword);
     }
 
+    @RequireRole({Role.HR, Role.ADMIN})
     @Transactional(readOnly = true)
     public PageResponse<UserResponse> getUsers(Pageable pageable) {
         Page<UserResponse> page = userRepository.findAll(pageable)
@@ -186,11 +193,13 @@ public class UserService {
         return PageResponse.from(page);
     }
 
+    @RequireRole({Role.HR, Role.ADMIN})
     @Transactional(readOnly = true)
     public UserResponse getUser(Long userId) {
         return UserResponse.from(findUserById(userId));
     }
 
+    @RequireRole({Role.HR, Role.ADMIN})
     @Transactional(readOnly = true)
     public List<UserResponse> getUsersByRole(Role role) {
         return userRepository.findByRole(role).stream()
