@@ -109,6 +109,7 @@ async function handleSubmit() {
     }
     form.value = { taskId: 0, workDate: '', hours: 1 }
     formRef.value?.resetFields()
+    await loadTasks()
     emit('created')
   } catch (e: any) {
     ElMessage.error(e.response?.data?.message || '建立工時失敗')
