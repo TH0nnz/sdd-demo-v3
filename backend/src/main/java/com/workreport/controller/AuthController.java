@@ -6,6 +6,7 @@ import com.workreport.dto.auth.LoginResponse;
 import com.workreport.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -16,6 +17,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
+@PreAuthorize("permitAll()")
 public class AuthController {
 
     private final AuthService authService;
