@@ -25,6 +25,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -83,7 +84,7 @@ class RoleCheckAspectTest {
         Method method = targetClass.getMethod(methodName);
         when(pjp.getSignature()).thenReturn(methodSignature);
         when(methodSignature.getMethod()).thenReturn(method);
-        when(pjp.getTarget()).thenReturn(newInstance(targetClass));
+        lenient().when(pjp.getTarget()).thenReturn(newInstance(targetClass));
     }
 
     @SuppressWarnings("unchecked")

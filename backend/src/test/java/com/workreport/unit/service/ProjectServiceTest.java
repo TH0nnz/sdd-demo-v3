@@ -230,6 +230,7 @@ class ProjectServiceTest {
             );
             when(projectRepository.findById(PROJECT_ID)).thenReturn(Optional.of(project));
             when(userRepository.findById(PM_ID)).thenReturn(Optional.of(pmUser));
+            when(departmentRepository.findById(DEPT_ID)).thenReturn(Optional.of(department));
             when(projectRepository.save(any(Project.class))).thenAnswer(inv -> inv.getArgument(0));
 
             ProjectResponse response = projectService.updateProject(PROJECT_ID, request);

@@ -133,3 +133,56 @@ checkstyle {
     ignoreFailures = !System.getenv().containsKey('CI')
 }
 
+// Service API Annotation Check
+// Verifies every public method in service classes is annotated with
+// @RequireRole or @PublicApi, enforcing explicit access-control declarations.
+task checkServiceAnnotations {
+    description = 'Verify every public method in service classes declares @RequireRole or @PublicApi'
+    group = 'verification'
+    doLast {
+        def violations = []
+        def serviceDir = file("src/main/java/com/workreport/service")
+
+        serviceDir.listFiles()?.findAll { it.name.endsWith('.java') }?.each { srcFile ->
+            def lines = srcFile.readLines('UTF-8')
+            lines.eachWithIndex { line, idx ->
+                def stripped = line.trim()
+
+                // Only consider "public " declarations
+                if (!stripped.startsWith('public ')) return
+
+                // Skip top-level and inner class/interface/enum declarations
+                if (stripped ==~ /public (abstract |final |static )*(class|interface|enum|@interface)\b.*/) return
+
+                // Skip constructors: "public UpperCaseName(" – single identifier before "("
+                // Method returns have a second token (method name) before "("
+                if (stripped ==~ /public [A-Z]\w*\s*\(.*/) return
+
+                // This is a public method – scan backwards through the annotation block
+                def hasAnnotation = false
+                for (int j = idx - 1; j >= 0; j--) {
+                    def prev = lines[j].trim()
+                    if (prev.startsWith('@RequireRole') || prev.startsWith('@PublicApi')) {
+                        hasAnnotation = true
+                        break
+                    }
+                    // Non-annotation, non-blank line ends the annotation block
+                    if (prev && !prev.startsWith('@')) break
+                }
+
+                if (!hasAnnotation) {
+                    violations << "  ${srcFile.name}:${idx + 1}  ->  ${stripped}"
+                }
+            }
+        }
+
+        if (violations) {
+            throw new GradleException(
+                "MISSING @RequireRole or @PublicApi on service methods:\n${violations.join('\n')}"
+            )
+        }
+    }
+}
+
+checkstyleMain.dependsOn checkServiceAnnotations
+

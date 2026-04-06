@@ -55,8 +55,10 @@ public class WorkEntryService {
                 .orElseThrow(() -> new ResourceNotFoundException("Task not found: " + request.taskId()));
 
         // Validate not terminal status
-        if (task.getStatus() == TaskStatus.COMPLETED || task.getStatus() == TaskStatus.CLOSED) {
-            throw new BusinessRuleException("Cannot log hours to a " + task.getStatus() + " task");
+        if (task.getStatus() == TaskStatus.COMPLETED) {
+            throw new BusinessRuleException("此任務已完成，無法新增工時");
+        } else if (task.getStatus() == TaskStatus.CLOSED) {
+            throw new BusinessRuleException("此任務狀態為 CLOSED，無法新增工時");
         }
 
         // Validate task is assigned to this user
@@ -139,8 +141,10 @@ public class WorkEntryService {
         Task task = entry.getTask();
 
         // Validate task not terminal
-        if (task.getStatus() == TaskStatus.COMPLETED || task.getStatus() == TaskStatus.CLOSED) {
+        if (task.getStatus() == TaskStatus.COMPLETED) {
             throw new BusinessRuleException("此任務已完成，無法修改工時");
+        } else if (task.getStatus() == TaskStatus.CLOSED) {
+            throw new BusinessRuleException("此任務狀態為 CLOSED，無法修改工時");
         }
 
         // Validate workDate still in editable range

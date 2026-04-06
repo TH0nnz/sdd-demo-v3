@@ -2,8 +2,8 @@ package com.workreport.service;
 
 import com.workreport.annotation.RequireRole;
 import com.workreport.dto.department.DeptOverviewResponse;
-import com.workreport.dto.department.MemberTaskResponse;
 import com.workreport.dto.department.MemberSummaryDto;
+import com.workreport.dto.department.MemberTaskResponse;
 import com.workreport.entity.Task;
 import com.workreport.entity.User;
 import com.workreport.enums.Role;
@@ -29,17 +29,17 @@ public class DeptOverviewService {
 
     private final UserRepository userRepository;
     private final WorkEntryRepository workEntryRepository;
-        private final TaskRepository taskRepository;
+    private final TaskRepository taskRepository;
 
     public DeptOverviewService(UserRepository userRepository,
-                                                           WorkEntryRepository workEntryRepository,
-                                                           TaskRepository taskRepository) {
+                               WorkEntryRepository workEntryRepository,
+                               TaskRepository taskRepository) {
         this.userRepository = userRepository;
         this.workEntryRepository = workEntryRepository;
-                this.taskRepository = taskRepository;
+        this.taskRepository = taskRepository;
     }
 
-        @RequireRole({Role.DEPT_MANAGER, Role.ADMIN})
+    @RequireRole({Role.DEPT_MANAGER, Role.ADMIN})
     public DeptOverviewResponse getDepartmentOverview(Long deptManagerUserId) {
         User manager = userRepository.findById(deptManagerUserId)
                 .orElseThrow(() -> new BusinessRuleException("User not found", HttpStatus.NOT_FOUND));
@@ -82,12 +82,12 @@ public class DeptOverviewService {
         return new DeptOverviewResponse(deptName, members.size(), totalHoursThisWeek, totalHoursThisMonth, memberSummaries);
     }
 
-        @RequireRole({Role.DEPT_MANAGER, Role.ADMIN})
-        public List<MemberSummaryDto> getDepartmentMembers(Long deptManagerUserId) {
-                return getDepartmentOverview(deptManagerUserId).members();
-        }
+    @RequireRole({Role.DEPT_MANAGER, Role.ADMIN})
+    public List<MemberSummaryDto> getDepartmentMembers(Long deptManagerUserId) {
+        return getDepartmentOverview(deptManagerUserId).members();
+    }
 
-        @RequireRole({Role.DEPT_MANAGER, Role.ADMIN})
+    @RequireRole({Role.DEPT_MANAGER, Role.ADMIN})
     public List<MemberTaskResponse> getDepartmentMemberTasks(Long deptManagerUserId, Long memberUserId) {
         User manager = userRepository.findById(deptManagerUserId)
                 .orElseThrow(() -> new BusinessRuleException("User not found", HttpStatus.NOT_FOUND));
