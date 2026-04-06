@@ -50,3 +50,9 @@ describe('auth store', () => {
     expect(store.token).toBeNull()
   })
 })
+// 用途：Vitest 單元測試，驗證 router 的 auth 函式行為。
+// 執行方式：
+// 進入 frontend 目錄。
+// 安裝依賴：npm install
+// 執行：npx vitest run tests/unit/router/auth.spec.ts
+// 或執行所有單元測試：npx vitest

@@ -40,3 +40,35 @@ test.describe('US1 執行人員工時填報', () => {
     await expect(page.getByText('task 已結束，無法新增工時')).toBeVisible()
   })
 })
+
+
+// 這個檔案是 Playwright 的 E2E（端對端）自動化測試腳本，用來驗證「執行人員工時填報」功能。你可以依下列步驟執行：
+//
+// 1. **安裝 Playwright 及瀏覽器驅動**
+// 若尚未安裝，請在 frontend 目錄下執行：
+//    ```
+//    npm install
+//    npx playwright install
+//    ```
+//
+// 2. **啟動前端與後端服務**
+// 確保你的前後端服務都已啟動（通常用 docker compose up -d --build）。
+//
+// 3. **執行 E2E 測試**
+// 在 frontend 目錄下執行：
+//    ```
+//    npx playwright test tests/e2e/us1-work-entry.spec.ts
+//    ```
+// 或執行全部 E2E 測試：
+//    ```
+//    npx playwright test
+//    ```
+//
+// 4. **檢查測試結果**
+// 終端機會顯示每個情境（Scenario）是否通過。失敗時可用
+//   ```
+//    npx playwright show-report
+//    ```
+// 查看詳細報告與截圖。
+//
+// 如需自動登入、資料準備等，請確保測試帳號（executor@company.com / Welcome123）在資料庫中存在。
