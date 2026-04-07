@@ -1,139 +1,141 @@
 # sdd-demo-v3 - 報工系統示範專案
 
-> Work-Reporting System Demo: Vue 3 + TypeScript 前端 | Spring Boot 4 後端 | PostgreSQL 18
+> Vue 3 + TypeScript 前端 | Spring Boot 4 後端 | PostgreSQL 18
 
-本專案示範一套五角色報工系統，涵蓋專案建立、任務拆分、工時填報到進度監控。
+五角色報工系統，涵蓋專案建立、任務拆分、工時填報、時數增補申請與進度監控。
 
 ## 目錄
 
-- [專案說明](#專案說明)
+- [系統角色](#系統角色)
 - [技術堆疊](#技術堆疊)
 - [快速啟動](#快速啟動)
 - [本地開發](#本地開發)
 - [測試帳號](#測試帳號)
 - [建構與測試](#建構與測試)
+- [安全架構](#安全架構)
+- [API 端點總覽](#api-端點總覽)
 - [部署到遠端主機](#部署到遠端主機)
-- [Auto-Fix 工作流程（Assign Copilot）](#auto-fix-工作流程assign-copilot)
+- [Auto-Fix 工作流程](#auto-fix-工作流程)
 - [CI/CD 工作流程](#cicd-工作流程)
-- [Speckit 斜線指令](#speckit-斜線指令)
 - [目錄結構](#目錄結構)
 
-## 專案說明
+---
 
-系統角色與職責如下：
+## 系統角色
 
 | 角色 | 主要職責 |
 | --- | --- |
-| 管理層 (Admin) | 建立、修改、關閉專案；設定時數預算；審核時數增補申請 |
-| PM | 拆分並指派任務；監控進度；向管理層申請時數 |
-| 部門主管 (Dept. Manager) | 唯讀查看部門成員工時與任務狀態 |
-| 執行人員 (Executor) | 填報工時（最小單位 0.5h）；管理個人任務狀態 |
-| HR | 新增使用者、指派角色、停用帳號 |
+| Admin（管理層） | 建立／修改／關閉專案；設定時數預算；審核時數增補申請 |
+| PM | 拆分並指派任務；監控進度；向管理層提交時數增補申請 |
+| Dept. Manager（部門主管） | 查看所屬部門的成員、任務與概覽 |
+| Executor（執行人員） | 填報工時（最小單位 0.5h）；完成個人任務 |
+| HR | 新增使用者、指派角色、停用／啟用帳號 |
 
-詳細功能規格請參閱 [specs/002-work-reporting-system/spec.md](specs/002-work-reporting-system/spec.md)。
+---
 
 ## 技術堆疊
 
 ### 後端
 
-| 技術 | 版本 | 說明 |
-| --- | --- | --- |
-| Java | 24 | 執行環境（Gradle Toolchain） |
-| Spring Boot | 4.0.2 | 應用程式框架 |
-| Spring Security + JWT | jjwt 0.12.6 | 身分驗證與授權 |
-| Spring Data JPA + Hibernate | - | ORM 資料存取層 |
-| Flyway | - | 資料庫遷移與版本管理 |
-| PostgreSQL | 18 | 關聯式資料庫 |
-| Gradle | Wrapper（8.x） | 建構工具 |
-| JaCoCo | 0.8.13 | 測試覆蓋率報告與門檻驗證（最低 90%） |
-| Checkstyle | 10.21.4 | 靜態程式碼分析 |
-| Testcontainers | 1.21.1 | 整合測試容器 |
+| 技術 | 版本 |
+| --- | --- |
+| Java | 24 |
+| Spring Boot | 4.0.2 |
+| Spring Security + JWT（jjwt） | 0.12.6 |
+| Spring Data JPA + Hibernate | — |
+| Flyway | — |
+| PostgreSQL | 18 |
+| Gradle Wrapper | 8.x |
+| JaCoCo | 0.8.13（Service 層最低覆蓋率 90%） |
+| Checkstyle | 10.21.4 |
+| Testcontainers | 1.21.1 |
 
 ### 前端
 
-| 技術 | 版本 | 說明 |
-| --- | --- | --- |
-| Vue | 3.5.x | UI 框架 |
-| TypeScript | 5.7.x | 型別安全 |
-| Vite | 6.1.x | 前端建構工具 |
-| Pinia | 3.0.x | 狀態管理 |
-| Vue Router | 4.5.x | 路由管理 |
-| Element Plus | 2.9.x | UI 元件函式庫 |
-| Axios | 1.7.x | HTTP 客戶端 |
-| Vitest | 3.0.x | 單元測試 |
-| Playwright | 1.50.x | E2E 測試 |
+| 技術 | 版本 |
+| --- | --- |
+| Vue | 3.5.x |
+| TypeScript | 5.7.x |
+| Vite | 6.1.x |
+| Pinia | 3.0.x |
+| Vue Router | 4.5.x |
+| Element Plus | 2.9.x |
+| Axios | 1.7.x |
+| Vitest | 3.0.x |
+| Playwright | 1.50.x |
+
+---
 
 ## 快速啟動
-
-一行啟動（Docker Compose）：
 
 ```bash
 docker compose up -d --build
 ```
 
-服務對應：
-
-| 服務 | URL / Port |
+| 服務 | 對外位址 |
 | --- | --- |
 | 前端（Nginx） | http://localhost |
 | 後端 API | http://localhost:8089 |
 | PostgreSQL | localhost:5454 |
 
+---
+
 ## 本地開發
 
 ### 前置需求
 
-| 工具 | 建議版本 |
+| 工具 | 版本 |
 | --- | --- |
 | JDK | 24（或 21 LTS） |
-| Node.js | 20 LTS 以上 |
-| pnpm | 9.x |
+| Node.js | 22 |
+| npm | 隨 Node.js 附帶 |
 | Docker / Docker Compose | 最新穩定版 |
 
-注意：若出現 `Unsupported class file major version 69`，代表正在使用 Java 25。請切換至 Java 24 或 Java 21。
-
-```bash
-export JAVA_HOME=/path/to/jdk24
-```
+> **注意**：若出現 `Unsupported class file major version 69` 代表使用 Java 25，請切換至 24 或 21：
+> ```bash
+> export JAVA_HOME=/path/to/jdk24
+> ```
 
 ### 啟動步驟
 
-1. 啟動資料庫
+**1. 啟動資料庫**
 
 ```bash
 docker compose up -d db
 ```
 
-2. 啟動後端
+**2. 啟動後端**（http://localhost:8080）
 
 ```bash
 cd backend
 ./gradlew bootRun
 ```
 
-後端本地預設為 `http://localhost:8080`。
-
-3. 啟動前端
+**3. 啟動前端**（http://localhost:5173）
 
 ```bash
 cd frontend
-pnpm install
-pnpm dev
+npm install
+npm run dev
 ```
 
-前端本地預設為 `http://localhost:5173`。
+---
 
 ## 測試帳號
 
-系統啟動後會由資料初始化腳本建立以下帳號（首次登入需改密碼）：
+資料庫啟動後由 Flyway（V2 seed）自動建立，**首次登入必須修改密碼**。
 
-| 角色 | Email | 初始密碼 |
-| --- | --- | --- |
-| 管理層 | admin@company.com | Welcome123 |
-| PM | pm@company.com | Welcome123 |
-| 部門主管 | manager@company.com | Welcome123 |
-| 執行人員 | executor@company.com | Welcome123 |
-| HR | hr@company.com | Welcome123 |
+| 角色 | Email | 初始密碼 | 所屬部門 |
+| --- | --- | --- | --- |
+| Admin | admin@company.com | Welcome123 | 研發部 |
+| PM | pm@company.com | Welcome123 | 研發部 |
+| Dept. Manager | manager@company.com | Welcome123 | 研發部 |
+| Executor | executor@company.com | Welcome123 | 研發部 |
+| HR | hr@company.com | Welcome123 | 人力資源部 |
+
+密碼規則：8 字元以上，含大寫字母、小寫字母、數字。
+
+---
 
 ## 建構與測試
 
@@ -142,53 +144,171 @@ pnpm dev
 ```bash
 cd backend
 
-# 執行測試
+# 執行單元測試
 ./gradlew test
 
-# 產生覆蓋率報告
+# 產生 JaCoCo 覆蓋率報告
 ./gradlew jacocoTestReport
 
-# 覆蓋率門檻驗證（最低 90%）
+# 覆蓋率門檻驗證（Service 層最低 90%）
 ./gradlew jacocoTestCoverageVerification
 
-# 靜態分析
-./gradlew checkstyleMain
+# 靜態程式碼分析
+./gradlew checkstyleMain checkstyleTest
+
+# CI 完整驗證（全部合一）
+./gradlew clean test jacocoTestCoverageVerification checkstyleMain checkstyleTest
 
 # 建構 JAR
 ./gradlew bootJar
 ```
 
-JaCoCo HTML 報告位置：`backend/build/reports/jacoco/test/html/index.html`
+JaCoCo HTML 報告：`backend/build/reports/jacoco/test/html/index.html`
 
-### 前端（Vite）
+### 前端
 
 ```bash
 cd frontend
 
-# 安裝相依套件
-pnpm install
-
-# 單元測試
-pnpm test:unit
-
-# Lint（含自動修正）
-pnpm lint
-
-# 建構正式版
-pnpm build
+npm install           # 安裝相依套件
+npm run lint          # ESLint（含自動修正）
+npm run test:unit     # Vitest 單元測試
+npm run build         # 型別檢查（vue-tsc）+ Vite build
 ```
 
 ### E2E 測試（Playwright）
 
 ```bash
 cd frontend
-
-# 首次執行需安裝瀏覽器
-pnpm exec playwright install
-
-# 執行 E2E
-pnpm test:e2e
+npx playwright install   # 首次執行需安裝瀏覽器
+npm run test:e2e
 ```
+
+### 效能測試（k6）
+
+腳本：`performance/k6/us1-smoke.js`
+
+| 設定 | 值 |
+| --- | --- |
+| 虛擬使用者（VU） | 100 |
+| 持續時間 | 1 分鐘 |
+| 測試端點 | `GET /api/work-entries` |
+| 門檻：p95 回應時間 | < 500 ms |
+| 門檻：check 成功率 | > 99% |
+
+```bash
+# 安裝 k6（macOS）
+brew install k6
+
+# 對本地後端執行（預設 http://localhost:8080）
+k6 run performance/k6/us1-smoke.js
+
+# 指定目標與帶入 JWT Token
+BASE_URL="http://your-api" TOKEN="your-jwt" k6 run performance/k6/us1-smoke.js
+```
+
+---
+
+## 安全架構
+
+每個進入後端的請求依序通過三層主動驗證，另有一層資料範圍基礎設施備用。
+
+### Layer 1 — JwtAuthenticationFilter（OncePerRequestFilter）
+
+- 從 `Authorization: Bearer <token>` 取出 JWT
+- 驗證簽章與有效期（30 分鐘）
+- 解析 `userId` + `roles` → 寫入 `SecurityContextHolder`
+- 失敗時回傳 401
+
+### Layer 2 — Spring Security URL 規則
+
+```
+POST /api/auth/login  → permitAll
+GET  /actuator/health → permitAll
+ALL  /api/**          → authenticated
+其他                  → denyAll
+```
+
+未通過時回傳 403。
+
+### Layer 3 — RoleCheckAspect（`@RequireRole` AOP）
+
+- 功能層級授權：方法或類別上標註所需角色，使用者需持有至少一個
+- 方法層級 annotation 優先於 class 層級
+- Role Hierarchy：`ADMIN > HR`、`ADMIN > PM`、`ADMIN > DEPT_MANAGER`、`ADMIN > EXECUTOR`
+- 未通過時拋出 `AccessDeniedException`（403）
+
+### Layer 4 — DataScopeAspect（`@DataScope` AOP，基礎設施）
+
+已實作完整的資料列層級授權基礎設施，角色對應如下：
+
+| 角色 | ScopeType |
+| --- | --- |
+| ADMIN、HR | ALL |
+| PM | PROJECT |
+| Dept. Manager | DEPARTMENT |
+| Executor | SELF |
+
+透過 `ThreadLocal<DataScopeContext>` 儲存當前請求的範圍，服務層可呼叫 `DataScopeAspect.getCurrentScope()` 取得。目前尚無服務方法掛載 `@DataScope`，此層不主動攔截任何請求。
+
+### 帳號安全
+
+- 密碼以 BCrypt 雜湊儲存
+- 連續登入失敗 15 次（5 分鐘內）→ 鎖定帳號 15 分鐘
+- JWT 效期 30 分鐘（無狀態設計，無 Refresh Token）
+- `Project`、`Task` 使用 `@Version` 樂觀鎖防止並發衝突
+
+---
+
+## API 端點總覽
+
+| 模組 | 方法 | 路徑 | 可存取角色 |
+| --- | --- | --- | --- |
+| **認證** | POST | `/api/auth/login` | 所有人 |
+| | POST | `/api/auth/change-password` | 登入使用者 |
+| **使用者** | GET | `/api/users` | HR、ADMIN |
+| | GET | `/api/users/{id}` | HR、ADMIN |
+| | POST | `/api/users` | HR、ADMIN |
+| | PUT | `/api/users/{id}` | HR、ADMIN |
+| | POST | `/api/users/{id}/disable` | HR、ADMIN |
+| | POST | `/api/users/{id}/enable` | HR、ADMIN |
+| | POST | `/api/users/{id}/reset-password` | HR、ADMIN |
+| **部門** | GET | `/api/hr/departments` | HR、ADMIN |
+| | POST | `/api/hr/departments` | HR、ADMIN |
+| | PUT | `/api/hr/departments/{id}` | HR、ADMIN |
+| | DELETE | `/api/hr/departments/{id}` | HR、ADMIN |
+| **專案** | GET | `/api/projects` | ADMIN |
+| | GET | `/api/projects/{id}` | ADMIN |
+| | POST | `/api/projects` | ADMIN |
+| | PUT | `/api/projects/{id}` | ADMIN |
+| | POST | `/api/projects/{id}/close` | ADMIN |
+| | POST | `/api/projects/{id}/activate` | ADMIN |
+| | DELETE | `/api/projects/{id}` | ADMIN |
+| **任務** | GET | `/api/projects/{projectId}/tasks` | PM、ADMIN |
+| | GET | `/api/projects/{projectId}/tasks/assignable-executors` | PM、ADMIN |
+| | POST | `/api/projects/{projectId}/tasks` | PM、ADMIN |
+| | PUT | `/api/projects/{projectId}/tasks/{id}` | PM、ADMIN |
+| | POST | `/api/projects/{projectId}/tasks/{id}/close` | PM、ADMIN |
+| | DELETE | `/api/projects/{projectId}/tasks/{id}` | PM、ADMIN |
+| **工時紀錄** | GET | `/api/work-entries?startDate=&endDate=` | EXECUTOR、ADMIN |
+| | POST | `/api/work-entries` | EXECUTOR、ADMIN |
+| | PUT | `/api/work-entries/{id}` | EXECUTOR、ADMIN |
+| **時數增補（PM）** | GET | `/api/hours-requests` | PM、ADMIN |
+| | POST | `/api/hours-requests` | PM、ADMIN |
+| **時數增補審核** | GET | `/api/admin/hours-requests` | ADMIN |
+| | POST | `/api/admin/hours-requests/{id}/review` | ADMIN |
+| **我的任務** | GET | `/api/my-tasks?status=` | EXECUTOR |
+| | POST | `/api/my-tasks/{id}/complete` | EXECUTOR |
+| **PM 專案** | GET | `/api/pm/projects` | PM、ADMIN |
+| **部門總覽** | GET | `/api/dept/overview` | DEPT_MANAGER、ADMIN |
+| | GET | `/api/dept/members` | DEPT_MANAGER、ADMIN |
+| | GET | `/api/dept/members/{userId}/tasks` | DEPT_MANAGER、ADMIN |
+| | GET | `/api/department/departments` | DEPT_MANAGER、ADMIN |
+| **通知** | GET | `/api/notifications?unreadOnly=` | 登入使用者 |
+| | PATCH | `/api/notifications/{id}/read` | 登入使用者 |
+| | GET | `/api/notifications/unread-count` | 登入使用者 |
+
+---
 
 ## 部署到遠端主機
 
@@ -198,144 +318,130 @@ pnpm test:e2e
 ./deploy.sh --host <IP> --user <USER> --password '<PASSWORD>'
 ```
 
-常用參數：
-
-```bash
-# 使用 sudo 執行 docker compose
-./deploy.sh --host 192.168.10.248 --user infoadmin --password 'your_password' --sudo
-
-# 指定遠端路徑
-./deploy.sh --host 192.168.10.248 --user infoadmin --password 'your_password' \
-  --remote-path /home/infoadmin/sdd-demo-v3
-
-# 跳過重建映像
-./deploy.sh --host 192.168.10.248 --user infoadmin --password 'your_password' --no-build
-```
+| 參數 | 說明 | 預設值 |
+| --- | --- | --- |
+| `--host` | 遠端主機 IP | 192.168.10.248 |
+| `--user` | SSH 使用者名稱 | infoadmin |
+| `--password` | SSH 密碼（需安裝 sshpass） | — |
+| `--remote-path` | 遠端部署路徑 | /home/infoadmin/sdd-demo-v3 |
+| `--sudo` | 以 sudo 執行 docker compose | — |
+| `--sudo-password` | sudo 密碼 | — |
+| `--no-build` | 跳過 `--build`（沿用現有映像） | — |
 
 ### 手動部署
 
-1. 同步檔案
-
 ```bash
+# 1. 同步檔案
 rsync -avz --delete \
   --exclude '.git' \
   --exclude 'backend/build' \
   --exclude 'backend/.gradle' \
   --exclude 'frontend/node_modules' \
   --exclude 'frontend/dist' \
-  ./ user@<IP>:/home/infoadmin/sdd-demo-v3/
-```
+  ./ <USER>@<IP>:/home/infoadmin/sdd-demo-v3/
 
-2. 啟動容器
-
-```bash
-ssh user@<IP>
+# 2. 啟動容器
+ssh <USER>@<IP>
 cd /home/infoadmin/sdd-demo-v3
 docker compose up -d --build
-```
 
-3. 檢查狀態
-
-```bash
+# 3. 確認狀態
 docker compose ps
 docker compose logs -f --tail=200
 ```
 
-## Auto-Fix 工作流程（Assign Copilot）
+---
 
-目前 Auto-Fix 採用「Issue 指派給 copilot」觸發，不使用 `/fix` 留言指令。
+## Auto-Fix 工作流程
 
-標準操作流程：
+「Issue 指派給 copilot」觸發，不使用留言指令。
 
-1. QA 或任一成員建立 Issue。
-2. `auto-fix-on-issue.yml` 會自動回覆 Issue Intake Summary，整理欄位內容。
-3. 維護者將該 Issue 的 Assignee 指派為 `copilot`。
-4. `auto-fix.yml` 觸發，並在 Issue 留言 `@copilot` 任務指示。
-5. Copilot 依指示修復問題、執行驗證並開立 PR。
+1. QA 或成員建立 Issue。
+2. `auto-fix-on-issue.yml` 自動回覆 Issue Intake Summary。
+3. 維護者將 Assignee 設為 `copilot`。
+4. `auto-fix.yml` 觸發，在 Issue 留言詳細任務指示。
+5. Copilot 修復程式碼、執行驗證並開立 PR。
 
-流程重點：
+**注意事項：**
+- 只有 assignee 為 `copilot` 時才會觸發。
+- 重新觸發：先移除 Assignee 再重新指派。
+- 需在 Settings → Actions → General 啟用 Read/Write permissions 與允許建立 PR。
 
-1. 開 Issue 後會先執行 intake 流程，協助整理需求品質。
-2. 只有當 assignee 為 `copilot` 時才會啟動修復流程。
-3. 修復流程會由 workflow 發佈 `@copilot` 指示留言。
-4. 建議修復內容與 `.autofix/issue-<編號>.md` 報告同一個 commit 提交。
-
-限制條件：
-
-- 僅支援 GitHub Issue（PR 不在此自動流程內）。
-- 若要重新觸發，建議先移除 Assignee 再重新指派 `copilot`。
-- 設定檔位置：`.github/workflows/auto-fix.yml`、`.github/workflows/auto-fix-on-issue.yml`。
-
-完整操作方式請參考：`GITHUB_COPILOT_CICD_MANUAL.md`
-
-GitHub Repository 設定勾選清單請參考：`GITHUB_REPOSITORY_SETTINGS_CHECKLIST.md`
+---
 
 ## CI/CD 工作流程
 
-本專案包含兩個主要 GitHub Actions workflow：
+### CI（`.github/workflows/ci.yml`）
 
-1. CI：PR / push 至 `main` 時驗證前後端品質。
-2. CD：`main` push（或手動觸發）時先驗證再部署。
+觸發：PR 或 push 至 `main`，兩個 Job 並行執行。
 
-主要設定檔：
+| Job | 環境 | 指令 |
+| --- | --- | --- |
+| Backend Test and Quality | ubuntu-latest / JDK 24 (temurin) | `./gradlew clean test jacocoTestCoverageVerification checkstyleMain checkstyleTest` |
+| Frontend Test and Build | ubuntu-latest / Node 22 | `npm ci` → `npm run lint` → `npm run test:unit -- --run` → `npm run build` |
 
-- `.github/workflows/ci.yml`
-- `.github/workflows/cd-deploy.yml`
+### CD（`.github/workflows/cd-deploy.yml`）
 
-建議先設定下列 Secrets：
+觸發：push 至 `main` 或手動（`workflow_dispatch`）。
 
-- `DEPLOY_SSH_PRIVATE_KEY`
-- `DEPLOY_REMOTE_HOST`
-- `DEPLOY_REMOTE_USER`
-- `DEPLOY_REMOTE_PATH`
-- `DEPLOY_USE_SUDO`（可選）
-- `DEPLOY_SUDO_PASSWORD`（可選）
+```
+Verify（前後端完整驗證，與 CI 相同）
+     │ 通過
+     ▼
+Deploy（SSH → ./deploy.sh → docker compose up -d --build）
+```
 
-## Speckit 斜線指令
+**必要 Secrets：**
 
-本專案採用 Speckit 流程，可在支援 Copilot Chat 的環境使用：
-
-| 指令 | 說明 |
+| Secret | 說明 |
 | --- | --- |
-| `/speckit.specify` | 依需求產生 `spec.md` |
-| `/speckit.plan` | 依 `spec.md` 產生 `plan.md` |
-| `/speckit.tasks` | 依 `plan.md` 產生 `tasks.md` |
-| `/speckit.implement` | 依序執行任務 |
-| `/speckit.analyze` | 檢查 spec / plan / tasks 一致性 |
-| `/speckit.clarify` | 針對規格模糊處提出澄清問題 |
-| `/speckit.checklist` | 產生驗收清單 |
-| `/speckit.taskstoissues` | 將任務轉為 GitHub Issues |
-| `/speckit.constitution` | 建立或更新專案憲章 |
+| `DEPLOY_SSH_PRIVATE_KEY` | 部署用 SSH 私鑰 |
+| `DEPLOY_REMOTE_HOST` | 遠端主機 IP |
+| `DEPLOY_REMOTE_USER` | SSH 使用者名稱 |
+| `DEPLOY_REMOTE_PATH` | 遠端部署路徑 |
+| `DEPLOY_USE_SUDO` | （選填）是否使用 sudo |
+| `DEPLOY_SUDO_PASSWORD` | （選填）sudo 密碼 |
 
-斜線指令來源與 Prompt 定義位於：`.github/prompts/`
+---
 
 ## 目錄結構
 
 ```text
 sdd-demo-v3/
-├── backend/                        # Spring Boot 後端（Java 24 / Gradle）
-│   ├── src/main/java/              # 業務邏輯、REST API、安全設定
-│   ├── src/main/resources/         # application.yml、Flyway 腳本
-│   └── src/test/                   # 單元測試 / 整合測試
-├── frontend/                       # Vue 3 前端（TypeScript / Vite）
+├── backend/
+│   ├── src/main/java/com/workreport/
+│   │   ├── annotation/          # @RequireRole、@DataScope
+│   │   ├── aop/                 # RoleCheckAspect、DataScopeAspect
+│   │   ├── config/              # SecurityConfig
+│   │   ├── controller/          # REST Controllers（13 個）
+│   │   ├── entity/              # User、Project、Task、WorkEntry、HoursRequest 等
+│   │   ├── enums/               # Role、TaskStatus、ProjectStatus、ScopeType 等
+│   │   ├── exception/           # BusinessRuleException、GlobalExceptionHandler
+│   │   ├── repository/          # Spring Data JPA Repositories
+│   │   ├── security/            # JwtAuthenticationFilter、JwtTokenProvider
+│   │   └── service/             # 業務邏輯層
+│   ├── src/main/resources/
+│   │   ├── application.yml
+│   │   └── db/migration/        # V1 schema、V2 seed data、V3 add department to project
+│   └── src/test/                # 單元測試（Mockito）、整合測試（Testcontainers）
+├── frontend/
 │   ├── src/
-│   │   ├── api/                    # Axios API 客戶端
-│   │   ├── components/             # 共用元件
-│   │   ├── pages/                  # 各角色頁面
-│   │   ├── stores/                 # Pinia 狀態管理
-│   │   └── router/                 # 路由設定
+│   │   ├── api/                 # Axios API 客戶端
+│   │   ├── components/          # 共用元件
+│   │   ├── pages/               # 各角色頁面
+│   │   ├── router/              # Vue Router
+│   │   └── stores/              # Pinia stores
 │   └── tests/
-│       ├── unit/                   # Vitest
-│       └── e2e/                    # Playwright
-├── specs/
-│   └── 002-work-reporting-system/  # 規格、計劃、任務、研究文件
+│       ├── unit/                # Vitest
+│       └── e2e/                 # Playwright
 ├── performance/
-│   └── k6/                         # 效能測試腳本
+│   └── k6/
+│       └── us1-smoke.js         # Smoke test（100 VU × 1 min，p95 < 500 ms）
 ├── .github/
-│   ├── workflows/                  # CI / CD / Auto-Fix
-│   ├── prompts/                    # Speckit slash commands 提示定義
-│   └── agents/                     # 自訂 agent 定義
-├── docker-compose.yml              # 一鍵啟動所有服務
-├── deploy.sh                       # 遠端部署腳本
+│   ├── workflows/               # ci.yml、cd-deploy.yml、auto-fix.yml、auto-fix-on-issue.yml
+│   ├── prompts/                 # Speckit slash command prompts
+│   └── agents/                  # 自訂 agent 定義
+├── docker-compose.yml
+├── deploy.sh
 └── README.md
 ```
